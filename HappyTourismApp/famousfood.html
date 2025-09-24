@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Famous Foods of Hyderabad & Chennai</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+    font-family: 'Georgia', serif;
+    background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    min-height:100vh; padding:20px;
+}
+.container { max-width:1200px; margin:0 auto; background:rgba(255,255,255,0.95); border-radius:20px; padding:30px; box-shadow:0 20px 40px rgba(0,0,0,0.1); }
+.header { text-align:center; margin-bottom:40px; }
+.header h1 { color:#2c3e50; font-size:2.5rem; margin-bottom:10px; text-shadow:2px 2px 4px rgba(0,0,0,0.1); }
+.header p { color:#7f8c8d; font-size:1.2rem; font-style:italic; }
+.city-section { margin-bottom:50px; }
+.city-title { padding:15px; border-radius:10px; text-align:center; font-size:1.8rem; margin-bottom:30px; color:white; box-shadow:0 5px 15px rgba(0,0,0,0.2); }
+.hyderabad .city-title { background: linear-gradient(45deg,#f093fb,#f5576c); }
+.chennai .city-title { background: linear-gradient(45deg,#4facfe,#00f2fe); }
+.food-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:25px; }
+.food-card { background:white; border-radius:15px; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.1); transition:all 0.3s ease; cursor:pointer; }
+.food-card:hover { transform:translateY(-10px); box-shadow:0 20px 40px rgba(0,0,0,0.2); }
+.food-image { width:100%; height:250px; background-size:cover; background-position:center; position:relative; overflow:hidden; }
+.food-image::before { content:''; position:absolute; top:0; left:0; right:0; bottom:0; background:linear-gradient(transparent 0%, rgba(0,0,0,0.3) 100%); z-index:1; }
+.food-content { padding:20px; }
+.food-name { font-size:1.4rem; font-weight:bold; color:#2c3e50; margin-bottom:10px; }
+.food-description { color:#7f8c8d; line-height:1.6; font-size:0.95rem; }
+.rating { display:flex; align-items:center; margin-top:15px; gap:5px; }
+.stars { color:#f39c12; font-size:1.2rem; }
+.rating-text { color:#95a5a6; font-size:0.9rem; margin-left:10px; }
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center; padding:20px; }
+.modal-content { background:white; border-radius:20px; max-width:500px; width:100%; max-height:80vh; overflow-y:auto; position:relative; }
+.modal-image { width:100%; height:300px; background-size:cover; background-position:center; border-radius:20px 20px 0 0; }
+.modal-body { padding:30px; }
+.modal-title { font-size:1.8rem; color:#2c3e50; margin-bottom:15px; }
+.modal-description { color:#7f8c8d; line-height:1.8; font-size:1.1rem; }
+.close { position:absolute; top:15px; right:20px; font-size:30px; color:white; cursor:pointer; background:rgba(0,0,0,0.5); width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:1001; }
+.close:hover { background:rgba(0,0,0,0.7); }
+@media(max-width:768px){ .header h1{font-size:2rem;} .container{padding:20px;} .food-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>🍛 Famous Foods of Hyderabad & Chennai 🍛</h1>
+<p>A culinary journey through South India's most beloved dishes</p>
+</div>
+
+<div class="city-section hyderabad">
+<div class="city-title">🏰 Hyderabad Delights</div>
+<div class="food-grid" id="hyderabadGrid"></div>
+</div>
+
+<div class="city-section chennai">
+<div class="city-title">🏛️ Chennai Specialties</div>
+<div class="food-grid" id="chennaiGrid"></div>
+</div>
+</div>
+
+<div id="foodModal" class="modal">
+<div class="modal-content">
+<span class="close">&times;</span>
+<div id="modalImage" class="modal-image"></div>
+<div class="modal-body">
+<h2 id="modalTitle" class="modal-title"></h2>
+<p id="modalDescription" class="modal-description"></p>
+</div>
+</div>
+</div>
+
+<script>
+const hyderabadFoods = [
+    {name:"Hyderabadi Biryani", description:"Delicious biryani", image:"biryani.webp", rating:"★★★★★", ratingText:"5.0 (2k)", detailedDescription:"Full description of Hyderabadi Biryani"},
+    {name:"Haleem", description:"Hearty stew", image:"haleem.webp", rating:"★★★★★", ratingText:"4.8 (1.5k)", detailedDescription:"Full description of Haleem"},
+    {name:"Irani Chai & Osmania Biscuits", description:"Tea & biscuits", image:"iran.webp", rating:"★★★★☆", ratingText:"4.5 (980)", detailedDescription:"Full description of Irani Chai & Osmania Biscuits"},
+    {name:"Lukhmi", description:"Square meat pastry", image:"lukhmi.webp", rating:"★★★★☆", ratingText:"4.3 (650)", detailedDescription:"Full description of Lukhmi"},
+    {name:"Double Ka Meetha", description:"Sweet bread pudding", image:"meeta.jpg", rating:"★★★★☆", ratingText:"4.6 (450)", detailedDescription:"Full description of Double Ka Meetha"}
+];
+
+const chennaiFoods = [
+    {name:"Filter Coffee", description:"Strong coffee", image:"coffee.jpg", rating:"★★★★★", ratingText:"4.9 (3k)", detailedDescription:"Full description of Filter Coffee"},
+    {name:"Chettinad Chicken", description:"Spicy chicken curry", image:"chettinad.webp", rating:"★★★★★", ratingText:"4.7 (1.8k)", detailedDescription:"Full description of Chettinad Chicken"},
+    {name:"Masala Dosa", description:"Crispy crepes", image:"dosa.jpg", rating:"★★★★★", ratingText:"4.8 (2.5k)", detailedDescription:"Full description of Masala Dosa"},
+    {name:"Idli-Sambar", description:"Steamed rice cakes & curry", image:"sambar.jpg", rating:"★★★★☆", ratingText:"4.6 (2.1k)", detailedDescription:"Full description of Idli-Sambar"},
+    {name:"Payasam", description:"Sweet dessert pudding", image:"payasam.webp", rating:"★★★★☆", ratingText:"4.5 (890)", detailedDescription:"Full description of Payasam"}
+];
+
+function createFoodCard(food){
+    return `<div class="food-card" onclick="openModal('${food.name}','${food.image}','${food.detailedDescription}')">
+    <div class="food-image" style="background-image:url('${food.image}')"></div>
+    <div class="food-content">
+        <div class="food-name">${food.name}</div>
+        <div class="food-description">${food.description}</div>
+        <div class="rating"><span class="stars">${food.rating}</span><span class="rating-text">${food.ratingText}</span></div>
+    </div>
+    </div>`;
+}
+
+function populateFoods(){
+    document.getElementById('hyderabadGrid').innerHTML = hyderabadFoods.map(createFoodCard).join('');
+    document.getElementById('chennaiGrid').innerHTML = chennaiFoods.map(createFoodCard).join('');
+}
+
+function openModal(name,image,description){
+    document.getElementById('modalTitle').textContent=name;
+    document.getElementById('modalImage').style.backgroundImage=`url('${image}')`;
+    document.getElementById('modalDescription').textContent=description;
+    document.getElementById('foodModal').style.display='flex';
+}
+
+function closeModal(){ document.getElementById('foodModal').style.display='none'; }
+
+document.querySelector('.close').addEventListener('click',closeModal);
+document.getElementById('foodModal').addEventListener('click',e=>{if(e.target===e.currentTarget) closeModal();});
+
+populateFoods();
+</script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Temple Tourist Guide</title>
+  <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.1.0/lucide.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom right, #fff7ed, #fff4e6, #ffe3e0);
+    }
+    /* Header */
+    .header {
+      background: linear-gradient(to right, #f97316, #ef4444);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .header h1 {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      font-size: 2rem;
+      margin-bottom: 5px;
+    }
+    .header p {
+      font-size: 1rem;
+    }
+
+    /* City Selector */
+    .city-selector {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+      gap: 10px;
+    }
+    .city-selector button {
+      padding: 10px 20px;
+      border-radius: 50px;
+      border: 2px solid #f97316;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: white;
+    }
+    .city-selector button.active {
+      background: linear-gradient(to right, #f97316, #ef4444);
+      color: white;
+      transform: scale(1.05);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    /* Cards grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: transform 0.4s, box-shadow 0.4s;
+      position: relative;
+    }
+    .card:hover {
+      transform: translateY(-5px) scale(1.03);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+    }
+    .card-content {
+      padding: 15px;
+    }
+    .card-content h3 {
+      margin: 0 0 10px 0;
+      font-size: 1.2rem;
+      color: #1f2937;
+    }
+    .card-content p {
+      font-size: 0.9rem;
+      color: #4b5563;
+      margin: 0 0 10px 0;
+    }
+    .card-content .info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    /* Favorites */
+    .favorite-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.8);
+      border: none;
+      border-radius: 50%;
+      padding: 5px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .favorite-btn.active {
+      background: red;
+      color: white;
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      max-width: 700px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      padding: 20px;
+    }
+    .modal img {
+      width: 100%;
+      border-radius: 20px;
+      height: 300px;
+      object-fit: cover;
+    }
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      background: white;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Buttons in modal */
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .modal-buttons button {
+      flex: 1;
+      padding: 10px;
+      border-radius: 15px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    .favorite-modal.active {
+      background: red;
+      color: white;
+    }
+    .share-btn {
+      background: #f97316;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <h1>📷 Temple Tourist Guide</h1>
+    <p>Discover sacred temples in Chennai & Hyderabad</p>
+  </div>
+
+  <!-- City Selector -->
+  <div class="city-selector">
+    <button id="chennaiBtn" class="active">Chennai Temples</button>
+    <button id="hyderabadBtn">Hyderabad Temples</button>
+  </div>
+
+  <!-- Temple Cards -->
+  <div class="grid" id="templeGrid"></div>
+
+  <!-- Modal -->
+  <div class="modal" id="templeModal">
+    <div class="modal-content" id="modalContent">
+      <span class="close-modal" id="closeModal">×</span>
+      <img id="modalImage" src="" alt="Temple Image">
+      <h2 id="modalName"></h2>
+      <p id="modalDescription"></p>
+      <div class="info" id="modalInfo"></div>
+      <div class="modal-buttons">
+        <button id="modalFavorite" class="favorite-modal">Add to Favorites ❤️</button>
+        <button class="share-btn">Share 🔗</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const templeData = {
+      chennai: [
+        {id:1,name:"Kapaleeshwarar Temple",location:"Mylapore",timing:"5:00 AM - 12:00 PM, 4:00 PM - 9:00 PM",rating:4.6,image:"https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",description:"Ancient Dravidian temple dedicated to Lord Shiva with stunning gopuram architecture",specialty:"7th century temple with beautiful carvings",distance:"12 km from city center"},
+        {id:2,name:"Parthasarathy Temple",location:"Triplicane",timing:"6:00 AM - 12:00 PM, 4:00 PM - 8:30 PM",rating:4.4,image:"https://images.unsplash.com/photo-1609920658906-8223bd289001?w=400&h=300&fit=crop",description:"Historic Vaishnavite temple dedicated to Lord Krishna in his Parthasarathy form",specialty:"8th century temple with rich history",distance:"8 km from city center"}
+      ],
+      hyderabad: [
+        {id:5,name:"Birla Mandir",location:"Naubat Pahad",timing:"7:00 AM - 12:00 PM, 3:00 PM - 9:00 PM",rating:4.5,image:"https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",description:"White marble temple dedicated to Lord Venkateswara with panoramic city views",specialty:"Modern architecture with stunning city views",distance:"5 km from city center"},
+        {id:6,name:"Keesaragutta Temple",location:"Keesaragutta",timing:"6:00 AM - 7:00 PM",rating:4.4,image:"https://images.unsplash.com/photo-1609920658906-8223bd289001?w=400&h=300&fit=crop",description:"Hilltop temple dedicated to Lord Hanuman with scenic surroundings",specialty:"Ancient hilltop temple with trekking trails",distance:"35 km from city center"}
+      ]
+    };
+
+    let selectedCity = 'chennai';
+    let favorites = [];
+    let selectedTemple = null;
+
+    const templeGrid = document.getElementById('templeGrid');
+    const modal = document.getElementById('templeModal');
+    const modalImage = document.getElementById('modalImage');
+    const modalName = document.getElementById('modalName');
+    const modalDescription = document.getElementById('modalDescription');
+    const modalInfo = document.getElementById('modalInfo');
+    const modalFavorite = document.getElementById('modalFavorite');
+    const closeModal = document.getElementById('closeModal');
+
+    function renderTemples() {
+      templeGrid.innerHTML = '';
+      templeData[selectedCity].forEach(temple => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+
+        card.innerHTML = `
+          <img src="${temple.image}" alt="${temple.name}">
+          <button class="favorite-btn ${favorites.includes(temple.id)?'active':''}">❤️</button>
+          <div class="card-content">
+            <h3>${temple.name}</h3>
+            <p>${temple.description}</p>
+            <div class="info">
+              <span>📍 ${temple.location}</span>
+              <span>⭐ ${temple.rating}</span>
+            </div>
+          </div>
+        `;
+
+        // Favorite toggle
+        card.querySelector('.favorite-btn').addEventListener('click', e => {
+          e.stopPropagation();
+          if(favorites.includes(temple.id)){
+            favorites = favorites.filter(id=>id!==temple.id);
+            card.querySelector('.favorite-btn').classList.remove('active');
+          } else {
+            favorites.push(temple.id);
+            card.querySelector('.favorite-btn').classList.add('active');
+          }
+        });
+
+        // Open modal
+        card.addEventListener('click', () => {
+          selectedTemple = temple;
+          openModal();
+        });
+
+        templeGrid.appendChild(card);
+      });
+    }
+
+    function openModal(){
+      modal.style.display = 'flex';
+      modalImage.src = selectedTemple.image;
+      modalName.innerText = selectedTemple.name;
+      modalDescription.innerText = selectedTemple.description;
+      modalInfo.innerHTML = `
+        <span>📍 ${selectedTemple.location}</span> | 
+        <span>⏰ ${selectedTemple.timing}</span> | 
+        <span>🧭 ${selectedTemple.distance}</span>
+      `;
+      modalFavorite.innerText = favorites.includes(selectedTemple.id) ? 'Favorited ❤️' : 'Add to Favorites ❤️';
+      modalFavorite.classList.toggle('active', favorites.includes(selectedTemple.id));
+    }
+
+    modalFavorite.addEventListener('click', () => {
+      if(favorites.includes(selectedTemple.id)){
+        favorites = favorites.filter(id=>id!==selectedTemple.id);
+      } else {
+        favorites.push(selectedTemple.id);
+      }
+      openModal();
+      renderTemples();
+    });
+
+    closeModal.addEventListener('click', () => modal.style.display = 'none');
+
+    document.getElementById('chennaiBtn').addEventListener('click', ()=>{
+      selectedCity='chennai';
+      document.getElementById('chennaiBtn').classList.add('active');
+      document.getElementById('hyderabadBtn').classList.remove('active');
+      renderTemples();
+    });
+
+    document.getElementById('hyderabadBtn').addEventListener('click', ()=>{
+      selectedCity='hyderabad';
+      document.getElementById('hyderabadBtn').classList.add('active');
+      document.getElementById('chennaiBtn').classList.remove('active');
+      renderTemples();
+    });
+
+    renderTemples();
+  </script>
+</body>
+</html>

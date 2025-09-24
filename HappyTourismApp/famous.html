@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Famous Places of Hyderabad & Chennai</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.3rem;
+            font-style: italic;
+        }
+
+        .city-section {
+            margin-bottom: 50px;
+        }
+
+        .city-title {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+            color: white;
+            padding: 18px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .city-title::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hyderabad .city-title {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+        }
+
+        .chennai .city-title {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+        }
+
+        .places-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .place-card {
+            background: white;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .place-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        .place-image {
+            width: 100%;
+            height: 280px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .place-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+            z-index: 1;
+        }
+
+        .place-tag {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .place-content {
+            padding: 25px;
+        }
+
+        .place-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .place-description {
+            color: #7f8c8d;
+            line-height: 1.7;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+        }
+
+        .place-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        .visitor-rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stars {
+            color: #f39c12;
+            font-size: 1.1rem;
+        }
+
+        .rating-text {
+            color: #95a5a6;
+            font-size: 0.85rem;
+        }
+
+        .visit-time {
+            color: #3498db;
+            font-size: 0.85rem;
+            background: rgba(52, 152, 219, 0.1);
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 25px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-image {
+            width: 100%;
+            height: 350px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 25px 25px 0 0;
+            position: relative;
+        }
+
+        .modal-body {
+            padding: 35px;
+        }
+
+        .modal-title {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .modal-description {
+            color: #7f8c8d;
+            line-height: 1.8;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .modal-details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .detail-value {
+            color: #6c757d;
+        }
+
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 35px;
+            color: white;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.6);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            transition: all 0.3s ease;
+        }
+
+        .close:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: rotate(90deg);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            .places-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                margin: 10px;
+            }
+
+            .modal-body {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏛️ Famous Places of Hyderabad & Chennai 🏛️</h1>
+            <p>Discover the architectural marvels and cultural landmarks of South India</p>
+        </div>
+
+        <div class="city-section hyderabad">
+            <div class="city-title">🕌 Hyderabad Heritage</div>
+            <div class="places-grid" id="hyderabadGrid">
+                <!-- Hyderabad places will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="city-section chennai">
+            <div class="city-title">🏛️ Chennai Treasures</div>
+            <div class="places-grid" id="chennaiGrid">
+                <!-- Chennai places will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="placeModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modalImage" class="modal-image"></div>
+            <div class="modal-body">
+                <h2 id="modalTitle" class="modal-title"></h2>
+                <p id="modalDescription" class="modal-description"></p>
+                <div id="modalDetails" class="modal-details"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const hyderabadPlaces = [
+            {
+                name: "Charminar",
+                description: "The iconic 16th-century monument and mosque, symbol of Hyderabad with four grand arches and minarets.",
+                image: "charminar.webp",
+                tag: "Historical",
+                rating: "★★★★★",
+                ratingText: "4.9 (15.2k visits)",
+                visitTime: "2-3 hours",
+                detailedDescription: "Charminar, built in 1591 by Sultan Muhammad Quli Qutb Shah, stands majestically as Hyderabad's most recognizable landmark. This magnificent structure was built to commemorate the end of a devastating plague. The monument features four towering minarets, each 56 meters high, and houses the oldest mosque in Hyderabad on its upper floor. The intricate Indo-Islamic architecture, with its pointed arches, domes, and geometric patterns, represents the perfect blend of Persian and Indian architectural styles.",
+                location: "Old City, Hyderabad",
+                builtIn: "1591 AD",
+                architect: "Sultan Muhammad Quli Qutb Shah",
+                significance: "Symbol of Hyderabad & UNESCO World Heritage Site"
+            },
+            {
+                name: "Golconda Fort",
+                description: "A magnificent ruined fortress and former capital of the Qutb Shahi dynasty, famous for its acoustic architecture.",
+                image: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                tag: "Fort",
+                rating: "★★★★★",
+                ratingText: "4.8 (12.5k visits)",
+                visitTime: "3-4 hours",
+                detailedDescription: "Golconda Fort, originally known as Mankal, is a testament to the engineering prowess of medieval India. Built by the Kakatiya dynasty and later expanded by the Qutb Shahi kings, this fortress complex sprawls over 11 kilometers. The fort is renowned for its incredible acoustic system - a clap at the entrance can be heard at the highest point, the Bala Hissar. The fort houses palaces, mosques, and the famous Fateh Rahben gun, one of the cannons used to defend the fort.",
+                location: "Golconda, Hyderabad",
+                builtIn: "13th century (expanded in 16th-17th century)",
+                architect: "Kakatiya Dynasty & Qutb Shahi Kings",
+                significance: "Former capital & Diamond trading center"
+            },
+            {
+                name: "Hussain Sagar Lake",
+                description: "Heart-shaped lake connecting Hyderabad and Secunderabad with the iconic Buddha statue in the center.",
+                image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                tag: "Lake",
+                rating: "★★★★☆",
+                ratingText: "4.6 (8.9k visits)",
+                visitTime: "2-3 hours",
+                detailedDescription: "Hussain Sagar Lake, built in 1563 by Ibrahim Quli Qutb Shah, is one of the largest man-made lakes in Asia. The lake covers an area of 5.7 square kilometers and serves as a natural boundary between Hyderabad and Secunderabad. The centerpiece is the 18-meter tall monolithic statue of Buddha, erected in 1992, which stands majestically on the Rock of Gibraltar in the middle of the lake. The lake offers boating facilities and stunning sunset views.",
+                location: "Between Hyderabad & Secunderabad",
+                builtIn: "1563 AD",
+                architect: "Ibrahim Quli Qutb Shah",
+                significance: "Largest artificial lake in India"
+            },
+            {
+                name: "Ramoji Film City",
+                description: "World's largest film studio complex, certified by Guinness World Records, spread over 1,666 acres.",
+                image: "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                tag: "Entertainment",
+                rating: "★★★★★",
+                ratingText: "4.7 (25.1k visits)",
+                visitTime: "Full day",
+                detailedDescription: "Ramoji Film City, established by Telugu media tycoon Ramoji Rao in 1996, is a dream destination for cinema lovers. Spread across 1,666 acres, it's certified by Guinness World Records as the world's largest film studio complex. The facility can accommodate 20 film units simultaneously and has over 500 locations. Visitors can enjoy live shows, adventure sports, vintage car collection, and themed attractions. It also serves as a popular tourist destination with guided tours showcasing film sets and production facilities.",
+                location: "Abdullahpurmet, Hyderabad",
+                builtIn: "1996",
+                architect: "Ramoji Rao",
+                significance: "World's largest film studio complex"
+            },
+            {
+                name: "Salar Jung Museum",
+                description: "One of India's three National Museums, housing the world's largest one-man collection of antiques.",
+                image: "salar.webp",
+                tag: "Museum",
+                rating: "★★★★☆",
+                ratingText: "4.5 (6.8k visits)",
+                visitTime: "3-4 hours",
+                detailedDescription: "The Salar Jung Museum, established in 1951, houses the extraordinary collection of Salar Jung III, a noble of the erstwhile Hyderabad State. The museum contains over one million objects including sculptures, paintings, carvings, textiles, manuscripts, ceramics, metallic artifacts, carpets, clocks, and furniture from different countries. The highlight is the famous musical clock from Britain and the Veiled Rebecca marble sculpture. It's one of the three National Museums of India and attracts visitors from around the world.",
+                location: "Darushifa, Hyderabad",
+                builtIn: "1951",
+                architect: "Salar Jung III",
+                significance: "World's largest one-man collection"
+            }
+        ];
+
+        const chennaiPlaces = [
+            {
+                name: "Marina Beach",
+                description: "India's longest natural urban beach stretching 13km, perfect for morning walks and evening relaxation.",
+                image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                tag: "Beach",
+                rating: "★★★★★",
+                ratingText: "4.8 (22.5k visits)",
+                visitTime: "2-3 hours",
+                detailedDescription: "Marina Beach, stretching 13 kilometers along the Bay of Bengal, is the longest natural urban beach in India and the second longest in the world. Established during the British colonial period, this sandy stretch has been Chennai's pride since the 1880s. The beach is lined with numerous statues and monuments, including those of Mahatma Gandhi, Subhash Chandra Bose, and various Tamil leaders. The lighthouse, aquarium, and numerous food stalls make it a complete destination for families and tourists.",
+                location: "Chennai, Tamil Nadu",
+                builtIn: "1880s (developed)",
+                architect: "British Administration",
+                significance: "India's longest natural urban beach"
+            },
+            {
+                name: "Kapaleeshwarar Temple",
+                description: "Ancient Dravidian temple dedicated to Lord Shiva, showcasing exquisite South Indian temple architecture.",
+                image: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                tag: "Temple",
+                rating: "★★★★★",
+                ratingText: "4.9 (18.7k visits)",
+                visitTime: "1-2 hours",
+                detailedDescription: "Kapaleeshwarar Temple in Mylapore is a magnificent example of Dravidian architecture dedicated to Lord Shiva. Built in the 7th century by the Pallavas, the temple features a towering 37-meter tall gopuram (gateway tower) adorned with colorful sculptures depicting Hindu deities and mythological scenes. The temple is associated with the legend of Goddess Parvati, who worshipped Shiva in the form of a peacock (Tamil: Karpagam). The annual Arubathimoovar festival attracts thousands of devotees from across South India.",
+                location: "Mylapore, Chennai",
+                builtIn: "7th century AD",
+                architect: "Pallava Dynasty",
+                significance: "Ancient Shiva temple with Dravidian architecture"
+            },
+            {
+                name: "Fort St. George",
+                description: "First British fortress in India, now housing a museum with colonial artifacts and St. Mary's Church.",
+                image: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                tag: "Historical",
+                rating: "★★★★☆",
+                ratingText: "4.6 (9.2k visits)",
+                visitTime: "2-3 hours",
+                detailedDescription: "Fort St. George, built in 1644, holds the distinction of being the first British fortress in India. Constructed by Francis Day and Andrew Cogan of the British East India Company, this fort became the foundation of modern Chennai (then Madras). The fort houses the Fort Museum, which displays artifacts from the British and French colonial periods, and St. Mary's Church, the oldest Anglican church in India. The fort also contains the Secretariat and Legislative Assembly of Tamil Nadu government.",
+                location: "George Town, Chennai",
+                builtIn: "1644 AD",
+                architect: "Francis Day & Andrew Cogan",
+                significance: "First British fortress in India"
+            },
+            {
+                name: "Mahabalipuram",
+                description: "UNESCO World Heritage site featuring ancient rock-cut temples and sculptures from the Pallava period.",
+                image: "https://images.unsplash.com/photo-1575550959106-5a7defe28b56?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                tag: "Heritage",
+                rating: "★★★★★",
+                ratingText: "4.9 (14.8k visits)",
+                visitTime: "Full day",
+                detailedDescription: "Mahabalipuram, also known as Mamallapuram, is a UNESCO World Heritage Site located 60km south of Chennai. This ancient port city was the second capital of the Pallava dynasty during the 7th-8th centuries. The site features magnificent rock-cut temples, monolithic sculptures called 'rathas,' and the famous relief sculpture 'Descent of the Ganges' or 'Arjuna's Penance.' The Shore Temple, standing against the Bay of Bengal, is an architectural masterpiece that has withstood centuries of sea erosion.",
+                location: "Kanchipuram district, Tamil Nadu",
+                builtIn: "7th-8th century AD",
+                architect: "Pallava Dynasty",
+                significance: "UNESCO World Heritage Site"
+            },
+            {
+                name: "Government Museum",
+                description: "Second oldest museum in India, housing rare archaeological and numismatic collections.",
+                image: "musuem.jpg",
+                tag: "Museum",
+                rating: "★★★★☆",
+                ratingText: "4.4 (5.9k visits)",
+                visitTime: "3-4 hours",
+                detailedDescription: "The Government Museum Chennai, established in 1851, is the second oldest museum in India and the oldest in South India. Founded by the British surgeon Dr. Edward Balfour, the museum houses an impressive collection of archaeological artifacts, numismatics, zoology, botany, geology, and anthropology. The Bronze Gallery is particularly famous for its collection of Chola bronzes, including the iconic Nataraja statue. The museum complex also includes the National Art Gallery and the Connemara Public Library.",
+                location: "Egmore, Chennai",
+                builtIn: "1851",
+                architect: "Dr. Edward Balfour",
+                significance: "Second oldest museum in India"
+            }
+        ];
+
+        function createPlaceCard(place) {
+            return `
+                <div class="place-card" onclick="openModal('${place.name}', '${place.image}', '${place.detailedDescription}', '${place.location}', '${place.builtIn}', '${place.architect}', '${place.significance}')">
+                    <div class="place-image" style="background-image: url('${place.image}')">
+                        <div class="place-tag">${place.tag}</div>
+                    </div>
+                    <div class="place-content">
+                        <div class="place-name">${place.name}</div>
+                        <div class="place-description">${place.description}</div>
+                        <div class="place-info">
+                            <div class="visitor-rating">
+                                <span class="stars">${place.rating}</span>
+                                <span class="rating-text">${place.ratingText}</span>
+                            </div>
+                            <div class="visit-time">${place.visitTime}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function populatePlaces() {
+            const hyderabadGrid = document.getElementById('hyderabadGrid');
+            const chennaiGrid = document.getElementById('chennaiGrid');
+
+            hyderabadGrid.innerHTML = hyderabadPlaces.map(createPlaceCard).join('');
+            chennaiGrid.innerHTML = chennaiPlaces.map(createPlaceCard).join('');
+        }
+
+        function openModal(name, image, description, location, builtIn, architect, significance) {
+            const modal = document.getElementById('placeModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalImage = document.getElementById('modalImage');
+            const modalDescription = document.getElementById('modalDescription');
+            const modalDetails = document.getElementById('modalDetails');
+
+            modalTitle.textContent = name;
+            modalImage.style.backgroundImage = `url('${image}')`;
+            modalDescription.textContent = description;
+
+            modalDetails.innerHTML = `
+                <div class="detail-item">
+                    <span class="detail-label">📍 Location:</span>
+                    <span class="detail-value">${location}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">🏗️ Built:</span>
+                    <span class="detail-value">${builtIn}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">👨‍💼 Architect:</span>
+                    <span class="detail-value">${architect}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">⭐ Significance:</span>
+                    <span class="detail-value">${significance}</span>
+                </div>
+            `;
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('placeModal').style.display = 'none';
+        }
+
+        // Event listeners
+        document.querySelector('.close').addEventListener('click', closeModal);
+        document.getElementById('placeModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Populate places when page loads
+        populatePlaces();
+    </script>
+</body>
+</html>

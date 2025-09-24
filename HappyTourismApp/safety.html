@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tourist Safety Tips</title>
+  <style>
+    * {margin: 0; padding: 0; box-sizing: border-box;}
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e0f2fe 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {max-width: 1200px; margin: 0 auto;}
+
+    /* Header */
+    .header {text-align: center; margin-bottom: 40px;}
+    .header h1 {font-size: 2.5rem; color: #1f2937;}
+    .header p {color: #6b7280; font-size: 1.1rem;}
+    .header-line {
+      width: 96px; height: 4px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border-radius: 2px; margin: 16px auto 0;
+    }
+
+    /* Grid */
+    .tips-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px; margin-bottom: 48px;
+    }
+
+    /* Card */
+    .tip-card {
+      background: white;
+      border-radius: 16px;
+      padding: 0 0 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: 0.3s;
+      overflow: hidden;
+    }
+    .tip-card:hover {transform: translateY(-6px);}
+    .tip-photo {
+      width: 100%; height: 160px; object-fit: cover;
+      border-top-left-radius: 16px; border-top-right-radius: 16px;
+    }
+    .tip-content {padding: 16px;}
+    .tip-title {font-size: 1.2rem; font-weight: bold; margin-bottom: 6px;}
+    .tip-short-desc {color: #6b7280; font-size: 0.9rem; margin-bottom: 12px;}
+    .tip-full-desc {display: none; font-size: 0.85rem; color: #374151;}
+    .tip-full-desc.expanded {display: block; margin-top: 10px;}
+    .expand-btn {border: none; background: #3b82f6; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer;}
+
+    /* Responsive */
+    @media(max-width:768px){.header h1{font-size:2rem;}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Safety Tips</h1>
+      <p>Stay safe and enjoy your travels</p>
+      <div class="header-line"></div>
+    </div>
+
+    <!-- Safety Tips Grid -->
+    <div class="tips-grid" id="tipsGrid"></div>
+  </div>
+
+  <script>
+    const safetyTips = [
+      {
+        id: 1,
+        photo: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e", // 🌍 Replace with your own photo link
+        title: "Keep Documents Safe",
+        shortDesc: "Secure your important documents",
+        fullDesc: "Always keep copies of your passport, ID, and travel documents in separate locations. Use hotel safes when available and consider digital backups."
+      },
+      {
+        id: 2,
+        photo: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee", // 🌍 Replace
+        title: "Stay in Tourist Areas",
+        shortDesc: "Stick to well-known, populated areas",
+        fullDesc: "Especially at night, stay in well-lit, populated tourist areas. Research your destination beforehand and know which areas to avoid."
+      },
+      {
+        id: 3,
+        photo: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29", // 🌍 Replace
+        title: "Emergency Contacts",
+        shortDesc: "Keep emergency numbers handy",
+        fullDesc: "Save local emergency numbers, your embassy contact, and trusted local contacts. Consider getting a local SIM card for better connectivity."
+      }
+    ];
+
+    function createTipCard(tip){
+      return `
+        <div class="tip-card">
+          <img src="${tip.photo}" alt="${tip.title}" class="tip-photo">
+          <div class="tip-content">
+            <h3 class="tip-title">${tip.title}</h3>
+            <p class="tip-short-desc">${tip.shortDesc}</p>
+            <div class="tip-full-desc" id="desc${tip.id}">
+              ${tip.fullDesc}
+            </div>
+            <button class="expand-btn" onclick="toggleDesc(${tip.id})">Read More</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function initializeTips(){
+      const tipsGrid=document.getElementById("tipsGrid");
+      tipsGrid.innerHTML=safetyTips.map(t=>createTipCard(t)).join("");
+    }
+
+    function toggleDesc(id){
+      const desc=document.getElementById("desc"+id);
+      desc.classList.toggle("expanded");
+    }
+
+    initializeTips();
+  </script>
+</body>
+</html>

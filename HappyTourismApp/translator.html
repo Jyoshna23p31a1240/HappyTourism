@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Language Translator Demo</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
+  body{background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;padding:20px;color:white;}
+  .container{max-width:600px;margin:0 auto;background:rgba(0,0,0,0.5);border-radius:15px;padding:25px;}
+  h1{text-align:center;margin-bottom:20px;}
+  .panel{display:block;padding:15px;border-radius:15px;background:rgba(255,255,255,0.1);}
+  .input-group{margin:15px 0;}
+  input,select{width:100%;padding:10px;border-radius:8px;border:none;font-size:1rem;}
+  .translation-result{margin-top:20px;padding:15px;background:rgba(255,255,255,0.2);border-radius:10px;min-height:60px;font-size:1.2rem;}
+  .phrase-buttons{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:20px;}
+  .phrase-button{padding:10px;border-radius:25px;border:2px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.1);cursor:pointer;transition:all 0.3s ease;}
+  .phrase-button:hover{background:rgba(255,255,255,0.3);transform:scale(1.05);}
+  .demo-button{margin-top:15px;padding:10px 20px;border:none;border-radius:25px;background:#22c55e;color:white;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🌍 Language Translator</h1>
+
+<div class="input-group">
+  <label>Select Target Language:</label>
+  <select id="targetLanguage" onchange="translateCurrentText()">
+    <option value="hi">Hindi (हिंदी)</option>
+    <option value="mr">Marathi (मराठी)</option>
+    <option value="te">Telugu (తెలుగు)</option>
+    <option value="ta">Tamil (தமிழ்)</option>
+  </select>
+</div>
+
+<div class="input-group">
+  <label>Enter text to translate:</label>
+  <input type="text" id="translateText" placeholder="Type in English..." oninput="translateCurrentText()">
+</div>
+
+<div class="translation-result" id="translationResult">Translation will appear here...</div>
+
+<div class="phrase-buttons">
+  <button class="phrase-button" onclick="quickTranslate('Hello')">Hello</button>
+  <button class="phrase-button" onclick="quickTranslate('Thank you')">Thank you</button>
+  <button class="phrase-button" onclick="quickTranslate('Please help me')">Please help me</button>
+  <button class="phrase-button" onclick="quickTranslate('Where is the bathroom?')">Where is the bathroom?</button>
+  <button class="phrase-button" onclick="quickTranslate('How much does this cost?')">How much does this cost?</button>
+  <button class="phrase-button" onclick="quickTranslate('I need a doctor')">I need a doctor</button>
+  <button class="phrase-button" onclick="quickTranslate('Where is the nearest hospital?')">Where is the nearest hospital?</button>
+  <button class="phrase-button" onclick="quickTranslate('Can you speak English?')">Can you speak English?</button>
+  <button class="phrase-button" onclick="quickTranslate('I am lost')">I am lost</button>
+  <button class="phrase-button" onclick="quickTranslate('Call the police')">Call the police</button>
+  <button class="phrase-button" onclick="quickTranslate('What is your name?')">What is your name?</button>
+  <button class="phrase-button" onclick="quickTranslate('Nice to meet you')">Nice to meet you</button>
+</div>
+
+<button class="demo-button" onclick="speakTranslation()">🔊 Speak Translation</button>
+</div>
+
+<script>
+// Translation dictionary
+const translations = {
+  'hello': { hi:'नमस्ते', mr:'नमस्कार', te:'నమస్కారం', ta:'வணக்கம்' },
+  'thank you': { hi:'धन्यवाद', mr:'धन्यवाद', te:'ధన్యవాదాలు', ta:'நன்றி' },
+  'please help me': { hi:'कृपया मेरी मदद करें', mr:'कृपया माझी मदत करा', te:'దయచేసి నాకు సహాయం చేయండి', ta:'தயவுசெய்து எனக்கு உதவுங்கள்' },
+  'where is the bathroom?': { hi:'बाथरूम कहाँ है?', mr:'स्नानगृह कुठे आहे?', te:'బాత్రూమ్ ఎక్కడ ఉంది?', ta:'குளியலறை எங்கே?' },
+  'how much does this cost?': { hi:'इसकी कीमत क्या है?', mr:'याची किंमत किती आहे?', te:'ఇది ఎంత వేళ?', ta:'இதன் விலை என்ன?' },
+  'i need a doctor': { hi:'मुझे डॉक्टर चाहिए', mr:'मला डॉक्टर हवा', te:'నాకు వైద్యుడు కావాలి', ta:'எனக்கு மருத்துவர் தேவை' },
+  'where is the nearest hospital?': { hi:'निकटतम अस्पताल कहाँ है?', mr:'जवळचे हॉस्पिटल कुठे आहे?', te:'ఇకలమైన ఆసుపత్రి ఎక్కడ ఉంది?', ta:'அருகிலுள்ள மருத்துவமனை எங்கே?' },
+  'can you speak english?': { hi:'क्या आप अंग्रेजी बोल सकते हैं?', mr:'तुम इंग्रजी बोलू शकता का?', te:'మీరు ఇంగ్లీష్ మాట్లాడగలరా?', ta:'நீங்கள் ஆங்கிலம் பேச முடியுமா?' },
+  'i am lost': { hi:'मैं खो गया हूँ', mr:'मी हरवलो आहे', te:'నేను తప్పిపోయాను', ta:'நான் தொலைந்துவிட்டேன்' },
+  'call the police': { hi:'पुलिस को बुलाओ', mr:'पोलीसला कॉल करा', te:'పోలీసులను పిలవండి', ta:'போலீஸை அழைக்கவும்' },
+  'what is your name?': { hi:'आपका नाम क्या है?', mr:'तुमचं नाव काय आहे?', te:'మీ పేరు ఏమిటి?', ta:'உங்கள் பெயர் என்ன?' },
+  'nice to meet you': { hi:'आपसे मिलकर खुशी हुई', mr:'तुमच्याशी भेटून आनंद झाला', te:'మీను కలవడం సంతోషంగా ఉంది', ta:'உங்களை சந்தித்து மகிழ்ச்சி'}
+};
+
+// Quick translate function
+function quickTranslate(text){
+  document.getElementById('translateText').value = text;
+  translateCurrentText();
+}
+
+// Translation function
+function translateCurrentText(){
+  let text = document.getElementById('translateText').value.trim().toLowerCase();
+  let lang = document.getElementById('targetLanguage').value;
+  if(translations[text] && translations[text][lang]){
+    document.getElementById('translationResult').innerText = translations[text][lang];
+  } else {
+    document.getElementById('translationResult').innerText = "Translation not available";
+  }
+}
+
+// Speak translation with voice fallback
+function speakTranslation(){
+  const text = document.getElementById('translationResult').innerText;
+  if(!('speechSynthesis' in window)){
+    alert("Speech synthesis not supported in this browser.");
+    return;
+  }
+
+  const utterance = new SpeechSynthesisUtterance(text);
+
+  const voices = speechSynthesis.getVoices();
+  const lang = document.getElementById('targetLanguage').value;
+
+  // Try to match the language voice
+  const voice = voices.find(v => v.lang.toLowerCase().startsWith(lang)) || voices.find(v => v.lang.startsWith('en')) || voices[0];
+  utterance.voice = voice;
+
+  speechSynthesis.speak(utterance);
+}
+</script>
+</body>
+</html>

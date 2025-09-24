@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Travel Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .planner-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            transform: translateY(50px);
+            opacity: 0;
+            animation: slideUp 0.8s ease forwards;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        @keyframes slideUp {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 1s ease 0.3s both;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip : text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .form-section {
+            display: none;
+            animation: fadeInRight 0.6s ease forwards;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            animation: bounceIn 0.6s ease forwards;
+            transform: scale(0.8);
+            opacity: 0;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            transform: translateY(0);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            width: 100%;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            margin-right: 15px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e1e5e9;
+            border-radius: 3px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            transition: width 0.8s ease;
+            border-radius: 3px;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e1e5e9;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-section {
+            display: none;
+            animation: zoomIn 0.8s ease forwards;
+        }
+
+        @keyframes zoomIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .budget-breakdown {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            animation: slideInLeft 0.6s ease forwards;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .budget-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .budget-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .itinerary {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: slideInRight 0.6s ease 0.3s forwards;
+            opacity: 0;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .day-plan {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            border-radius: 12px;
+            color: white;
+            animation: bounceInUp 0.6s ease forwards;
+            transform: translateY(30px);
+            opacity: 0;
+        }
+
+        @keyframes bounceInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            60% {
+                opacity: 1;
+                transform: translateY(-10px);
+            }
+            80% {
+                transform: translateY(5px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .activity {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            animation: slideInActivity 0.4s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes slideInActivity {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .activity-time {
+            font-weight: bold;
+            margin-right: 15px;
+            min-width: 80px;
+        }
+
+        .floating-icons {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .floating-icon {
+            position: absolute;
+            font-size: 2rem;
+            color: rgba(255, 255, 255, 0.1);
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .back-btn {
+            background: #6c757d;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .planner-card {
+                padding: 25px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-icons" id="floatingIcons"></div>
+    
+    <div class="container">
+        <div class="planner-card">
+            <div class="header">
+                <h1>💰 Budget Travel Planner</h1>
+                <p>Plan your perfect trip within budget</p>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 20%"></div>
+            </div>
+
+            <!-- Step 1: Budget -->
+            <div class="form-section active" id="step1">
+                <div class="form-group">
+                    <label for="budget">💵 What's your total budget? (in ₹)</label>
+                    <input type="number" id="budget" placeholder="e.g., 10000" min="1000">
+                </div>
+                <button class="btn btn-primary" onclick="nextStep(2)">Next Step →</button>
+            </div>
+
+            <!-- Step 2: Destination -->
+            <div class="form-section" id="step2">
+                <div class="form-group">
+                    <label for="state">🏞️ Which state do you want to visit?</label>
+                    <select id="state">
+                        <option value="">Select State</option>
+                        <option value="rajasthan">Rajasthan</option>
+                        <option value="kerala">Kerala</option>
+                        <option value="goa">Goa</option>
+                        <option value="himachal">Himachal Pradesh</option>
+                        <option value="uttarakhand">Uttarakhand</option>
+                        <option value="karnataka">Karnataka</option>
+                        <option value="maharashtra">Maharashtra</option>
+                        <option value="tamilnadu">Tamil Nadu</option>
+                        <option value="gujarat">Gujarat</option>
+                        <option value="westbengal">West Bengal</option>
+                    </select>
+                </div>
+                <button class="btn btn-secondary" onclick="prevStep(1)">← Back</button>
+                <button class="btn btn-primary" onclick="nextStep(3)">Next Step →</button>
+            </div>
+
+            <!-- Step 3: Duration -->
+            <div class="form-section" id="step3">
+                <div class="form-group">
+                    <label for="days">📅 How many days?</label>
+                    <input type="number" id="days" placeholder="e.g., 5" min="1" max="30">
+                </div>
+                <div class="form-group">
+                    <label for="travelers">👥 Number of travelers</label>
+                    <input type="number" id="travelers" placeholder="e.g., 2" min="1" max="10">
+                </div>
+                <button class="btn btn-secondary" onclick="prevStep(2)">← Back</button>
+                <button class="btn btn-primary" onclick="nextStep(4)">Next Step →</button>
+            </div>
+
+            <!-- Step 4: Preferences -->
+            <div class="form-section" id="step4">
+                <div class="form-group">
+                    <label for="accommodation">🏨 Accommodation Preference</label>
+                    <select id="accommodation">
+                        <option value="budget">Budget Hotels/Hostels</option>
+                        <option value="mid">Mid-range Hotels</option>
+                        <option value="luxury">Luxury Hotels</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transport">🚗 Transportation Preference</label>
+                    <select id="transport">
+                        <option value="public">Public Transport</option>
+                        <option value="private">Private Vehicle</option>
+                        <option value="flight">Flight + Local Transport</option>
+                    </select>
+                </div>
+                <button class="btn btn-secondary" onclick="prevStep(3)">← Back</button>
+                <button class="btn btn-primary" onclick="generatePlan()">Generate My Plan! ✨</button>
+            </div>
+
+            <!-- Loading -->
+            <div class="loading-spinner" id="loading">
+                <div class="spinner"></div>
+                <p>🎯 Analyzing your budget...</p>
+                <p>🗺️ Planning your itinerary...</p>
+                <p>✨ Creating magic...</p>
+            </div>
+
+            <!-- Results -->
+            <div class="result-section" id="results">
+                <button class="btn back-btn" onclick="restart()">← Plan New Trip</button>
+                
+                <div class="budget-breakdown" id="budgetBreakdown">
+                    <h3>💰 Budget Breakdown</h3>
+                    <div id="budgetItems"></div>
+                </div>
+
+                <div class="itinerary" id="itinerary">
+                    <h3>🗓️ Your Travel Itinerary</h3>
+                    <div id="dayPlans"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        // Sample data for different states
+        const stateData = {
+            rajasthan: {
+                cities: ['Jaipur', 'Udaipur', 'Jodhpur'],
+                attractions: ['Amber Fort', 'City Palace', 'Hawa Mahal', 'Lake Pichola', 'Mehrangarh Fort'],
+                avgDailyCost: { budget: 1500, mid: 2500, luxury: 4500 }
+            },
+            kerala: {
+                cities: ['Kochi', 'Munnar', 'Alleppey'],
+                attractions: ['Backwaters', 'Tea Gardens', 'Fort Kochi', 'Periyar National Park'],
+                avgDailyCost: { budget: 1200, mid: 2200, luxury: 4000 }
+            },
+            goa: {
+                cities: ['North Goa', 'South Goa', 'Panaji'],
+                attractions: ['Beaches', 'Churches', 'Spice Plantations', 'Night Markets'],
+                avgDailyCost: { budget: 1800, mid: 3000, luxury: 5000 }
+            },
+            himachal: {
+                cities: ['Shimla', 'Manali', 'Dharamshala'],
+                attractions: ['Snow Mountains', 'Adventure Sports', 'Monasteries', 'Apple Orchards'],
+                avgDailyCost: { budget: 1400, mid: 2400, luxury: 4200 }
+            }
+        };
+
+        // Initialize floating icons
+        function createFloatingIcons() {
+            const icons = ['✈️', '🏖️', '🏔️', '🎒', '📸', '🗺️', '🌟', '🎯'];
+            const container = document.getElementById('floatingIcons');
+            
+            setInterval(() => {
+                const icon = document.createElement('div');
+                icon.className = 'floating-icon';
+                icon.textContent = icons[Math.floor(Math.random() * icons.length)];
+                icon.style.left = Math.random() * 100 + '%';
+                icon.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                container.appendChild(icon);
+                
+                setTimeout(() => {
+                    container.removeChild(icon);
+                }, 20000);
+            }, 3000);
+        }
+
+        function nextStep(step) {
+            // Validate current step
+            if (!validateStep(currentStep)) return;
+            
+            // Hide current step
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            
+            // Update progress
+            const progress = (step / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            // Show next step with delay for animation
+            setTimeout(() => {
+                document.getElementById(`step${step}`).classList.add('active');
+                animateFormGroups(step);
+            }, 300);
+            
+            currentStep = step;
+        }
+
+        function prevStep(step) {
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            
+            const progress = (step / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            setTimeout(() => {
+                document.getElementById(`step${step}`).classList.add('active');
+            }, 300);
+            
+            currentStep = step;
+        }
+
+        function validateStep(step) {
+            switch(step) {
+                case 1:
+                    const budget = document.getElementById('budget').value;
+                    if (!budget || budget < 1000) {
+                        alert('Please enter a budget of at least ₹1000');
+                        return false;
+                    }
+                    break;
+                case 2:
+                    if (!document.getElementById('state').value) {
+                        alert('Please select a state');
+                        return false;
+                    }
+                    break;
+                case 3:
+                    const days = document.getElementById('days').value;
+                    const travelers = document.getElementById('travelers').value;
+                    if (!days || days < 1) {
+                        alert('Please enter number of days');
+                        return false;
+                    }
+                    if (!travelers || travelers < 1) {
+                        alert('Please enter number of travelers');
+                        return false;
+                    }
+                    break;
+            }
+            return true;
+        }
+
+        function animateFormGroups(step) {
+            const formGroups = document.querySelectorAll(`#step${step} .form-group`);
+            formGroups.forEach((group, index) => {
+                group.style.animationDelay = (index * 0.2) + 's';
+                group.style.animation = 'none';
+                setTimeout(() => {
+                    group.style.animation = 'bounceIn 0.6s ease forwards';
+                }, 50);
+            });
+        }
+
+        function generatePlan() {
+            if (!validateStep(4)) return;
+            
+            // Hide form and show loading
+            document.getElementById('step4').classList.remove('active');
+            document.getElementById('loading').style.display = 'block';
+            
+            // Simulate processing time
+            setTimeout(() => {
+                const budget = parseInt(document.getElementById('budget').value);
+                const state = document.getElementById('state').value;
+                const days = parseInt(document.getElementById('days').value);
+                const travelers = parseInt(document.getElementById('travelers').value);
+                const accommodation = document.getElementById('accommodation').value;
+                const transport = document.getElementById('transport').value;
+                
+                generateBudgetBreakdown(budget, state, days, travelers, accommodation, transport);
+                generateItinerary(state, days, budget, travelers);
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('results').style.display = 'block';
+                
+                // Animate result items
+                setTimeout(() => {
+                    animateResults();
+                }, 500);
+                
+            }, 4000);
+        }
+
+        function generateBudgetBreakdown(budget, state, days, travelers, accommodation, transport) {
+            const stateInfo = stateData[state] || stateData.rajasthan;
+            const dailyCost = stateInfo.avgDailyCost[accommodation] * travelers;
+            
+            const transportCost = calculateTransportCost(transport, travelers);
+            const accommodationCost = dailyCost * days * 0.4;
+            const foodCost = dailyCost * days * 0.3;
+            const activitiesCost = dailyCost * days * 0.2;
+            const miscCost = dailyCost * days * 0.1;
+            
+            const totalEstimated = transportCost + accommodationCost + foodCost + activitiesCost + miscCost;
+            const remaining = budget - totalEstimated;
+            
+            const budgetItems = document.getElementById('budgetItems');
+            budgetItems.innerHTML = `
+                <div class="budget-item" style="animation-delay: 0.1s">
+                    <span>🚗 Transportation</span>
+                    <span>₹${transportCost.toLocaleString()}</span>
+                </div>
+                <div class="budget-item" style="animation-delay: 0.2s">
+                    <span>🏨 Accommodation</span>
+                    <span>₹${accommodationCost.toLocaleString()}</span>
+                </div>
+                <div class="budget-item" style="animation-delay: 0.3s">
+                    <span>🍽️ Food & Dining</span>
+                    <span>₹${foodCost.toLocaleString()}</span>
+                </div>
+                <div class="budget-item" style="animation-delay: 0.4s">
+                    <span>🎯 Activities & Sightseeing</span>
+                    <span>₹${activitiesCost.toLocaleString()}</span>
+                </div>
+                <div class="budget-item" style="animation-delay: 0.5s">
+                    <span>🛍️ Miscellaneous</span>
+                    <span>₹${miscCost.toLocaleString()}</span>
+                </div>
+                <div class="budget-item" style="animation-delay: 0.6s">
+                    <span>💰 Total Estimated</span>
+                    <span>₹${totalEstimated.toLocaleString()}</span>
+                </div>
+                <div class="budget-item" style="animation-delay: 0.7s; ${remaining >= 0 ? 'color: #4ade80' : 'color: #f87171'}">
+                    <span>${remaining >= 0 ? '💚 Budget Remaining' : '❗ Over Budget'}</span>
+                    <span>₹${Math.abs(remaining).toLocaleString()}</span>
+                </div>
+            `;
+        }
+
+        function calculateTransportCost(transport, travelers) {
+            const costs = {
+                public: 2000 * travelers,
+                private: 5000 * travelers,
+                flight: 8000 * travelers
+            };
+            return costs[transport] || costs.public;
+        }
+
+        function generateItinerary(state, days, budget, travelers) {
+            const stateInfo = stateData[state] || stateData.rajasthan;
+            const dayPlans = document.getElementById('dayPlans');
+            let itineraryHTML = '';
+            
+            for (let day = 1; day <= days; day++) {
+                const city = stateInfo.cities[Math.floor((day - 1) / Math.ceil(days / stateInfo.cities.length))];
+                const attractions = stateInfo.attractions.slice(((day - 1) * 2) % stateInfo.attractions.length, ((day - 1) * 2 + 2) % stateInfo.attractions.length + 2);
+                
+                itineraryHTML += `
+                    <div class="day-plan" style="animation-delay: ${day * 0.2}s">
+                        <h4>📅 Day ${day} - ${city}</h4>
+                        <div class="activity" style="animation-delay: ${day * 0.2 + 0.1}s">
+                            <span class="activity-time">09:00 AM</span>
+                            <span>🌅 Start day with breakfast at local restaurant</span>
+                        </div>
+                        <div class="activity" style="animation-delay: ${day * 0.2 + 0.2}s">
+                            <span class="activity-time">10:30 AM</span>
+                            <span>🎯 Visit ${attractions[0] || 'Local Attraction'}</span>
+                        </div>
+                        <div class="activity" style="animation-delay: ${day * 0.2 + 0.3}s">
+                            <span class="activity-time">01:00 PM</span>
+                            <span>🍽️ Lunch at traditional restaurant</span>
+                        </div>
+                        <div class="activity" style="animation-delay: ${day * 0.2 + 0.4}s">
+                            <span class="activity-time">02:30 PM</span>
+                            <span>📸 Explore ${attractions[1] || 'City Center'}</span>
+                        </div>
+                        <div class="activity" style="animation-delay: ${day * 0.2 + 0.5}s">
+                            <span class="activity-time">05:00 PM</span>
+                            <span>🛍️ Shopping and local markets</span>
+                        </div>
+                        <div class="activity" style="animation-delay: ${day * 0.2 + 0.6}s">
+                            <span class="activity-time">07:30 PM</span>
+                            <span>🌙 Dinner and evening relaxation</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            dayPlans.innerHTML = itineraryHTML;
+        }
+
+        function animateResults() {
+            const budgetItems = document.querySelectorAll('.budget-item');
+            const dayPlans = document.querySelectorAll('.day-plan');
+            const activities = document.querySelectorAll('.activity');
+            
+            budgetItems.forEach((item, index) => {
+                setTimeout(() => {
+                    item.style.animation = 'fadeInUp 0.5s ease forwards';
+                }, index * 100);
+            });
+            
+            dayPlans.forEach((plan, index) => {
+                setTimeout(() => {
+                    plan.style.animation = 'bounceInUp 0.6s ease forwards';
+                }, index * 200);
+            });
+            
+            setTimeout(() => {
+                activities.forEach((activity, index) => {
+                    setTimeout(() => {
+                        activity.style.animation = 'slideInActivity 0.4s ease forwards';
+                    }, index * 50);
+                });
+            }, 1000);
+        }
+
+        function restart() {
+            currentStep = 1;
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('step1').classList.add('active');
+            document.getElementById('progressFill').style.width = '20%';
+            
+            // Reset form
+            document.getElementById('budget').value = '';
+            document.getElementById('state').value = '';
+            document.getElementById('days').value = '';
+            document.getElementById('travelers').value = '';
+            document.getElementById('accommodation').value = 'budget';
+            document.getElementById('transport').value = 'public';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            createFloatingIcons();
+            animateFormGroups(1);
+        });
+    </script>
+</body>
+</html>

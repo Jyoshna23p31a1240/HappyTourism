@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>SafeRoute Navigator</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" crossorigin=""/>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #2c3e50;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; position: relative; }
+        .header { text-align: center; color: white; margin-bottom: 30px; animation: fadeInDown 1s ease-out; }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .header p { font-size: 1.1rem; opacity: 0.95; }
+
+        .control-panel {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .input-wrapper { position: relative; }
+        .input-wrapper input {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.25s ease;
+            background: white;
+        }
+        .input-wrapper input:focus { outline: none; border-color: #667eea; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(102,126,234,0.15); }
+        .input-wrapper i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #667eea; font-size: 18px; }
+
+        .button-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn {
+            padding: 12px 18px; border: none; border-radius: 25px; font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; gap: 8px;
+            position: relative; overflow: hidden;
+        }
+        .btn::before {
+            content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0;
+            background: rgba(255,255,255,0.18); border-radius: 50%; transition: width 0.5s, height 0.5s;
+            transform: translate(-50%, -50%);
+        }
+        .btn:hover::before { width: 300px; height: 300px; }
+        .btn-primary { background: linear-gradient(45deg, #667eea, #764ba2); color: white; }
+        .btn-secondary { background: linear-gradient(45deg, #f093fb, #f5576c); color: white; }
+        .btn-success { background: linear-gradient(45deg, #4ecdc4, #44a08d); color: white; }
+        .btn-warning { background: linear-gradient(45deg, #ffeaa7, #fdcb6e); color: #2d3436; }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+
+        .map-container { position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.15); animation: scaleIn 1s ease-out; }
+        #map { height: 500px; width: 100%; }
+
+        .status-panel {
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+            border-radius: 15px; padding: 20px; margin-top: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        .status-item { display: flex; align-items: center; margin-bottom: 15px; padding: 10px; border-radius: 8px; transition: all 0.3s ease; }
+        .status-item:hover { background: rgba(102,126,234,0.04); }
+        .status-item i { margin-right: 15px; font-size: 18px; width: 20px; }
+
+        .status-success { color: #27ae60; }
+        .status-warning { color: #f39c12; }
+        .status-danger { color: #e74c3c; }
+        .status-info { color: #3498db; }
+
+        .floating-panel {
+            position: fixed; top: 20px; right: 20px; background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px); border-radius: 15px; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            z-index: 1000; min-width: 200px; animation: slideInRight 0.5s ease-out;
+        }
+        .weather-info { text-align: center; margin-bottom: 15px; }
+        .weather-temp { font-size: 24px; font-weight: bold; color: #2c3e50; }
+        .weather-desc { color: #7f8c8d; font-size: 14px; }
+
+        .loading { display: inline-flex; align-items: center; gap: 10px; }
+        .spinner {
+            width: 18px; height: 18px; border: 2px solid #f3f3f3; border-top: 2px solid #667eea; border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .pulse { animation: pulse 2s infinite; }
+
+        .danger-zone { background: rgba(231,76,60,0.08) !important; border: 2px solid #e74c3c !important; }
+        .safe-zone { background: rgba(39,174,96,0.08) !important; border: 2px solid #27ae60 !important; }
+
+        .notification {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 20px; border-radius: 25px;
+            color: white; font-weight: 600; z-index: 10000; animation: slideDown 0.4s ease-out;
+        }
+        .notification.success { background: linear-gradient(45deg,#4ecdc4,#44a08d); }
+        .notification.error { background: linear-gradient(45deg,#ff6b6b,#ee5a52); }
+        .notification.warning { background: linear-gradient(45deg,#ffeaa7,#fdcb6e); color: #2d3436; }
+
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px);} to { opacity: 1; transform: translateY(0);} }
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(30px);} to { opacity: 1; transform: translateY(0);} }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: translateY(0);} }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95);} to { opacity: 1; transform: scale(1);} }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(30px);} to { opacity: 1; transform: translateX(0);} }
+        @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+        @keyframes pulse { 0% { transform: scale(1);} 50% { transform: scale(1.05);} 100% { transform: scale(1);} }
+        @keyframes slideDown { from { opacity: 0; transform: translateX(-50%) translateY(-100%);} to { opacity: 1; transform: translateX(-50%) translateY(0);} }
+
+        @media (max-width: 768px) {
+            .input-group { grid-template-columns: 1fr; }
+            .button-group { justify-content: center; }
+            .floating-panel { position: relative; top: auto; right: auto; margin-top: 20px; }
+            #map { height: 400px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-shield-alt"></i> SafeRoute Navigator</h1>
+            <p>Navigate safely with real-time danger detection and smart routing</p>
+        </div>
+
+        <div class="control-panel">
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <input type="text" id="currentLocation" placeholder="Current Location (Auto-detected)" readonly>
+                </div>
+
+                <div class="input-wrapper">
+                    <i class="fas fa-flag-checkered"></i>
+                    <input type="text" id="destination" placeholder="Enter destination">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="getCurrentLocation()">
+                    <i class="fas fa-crosshairs"></i> <span>Get My Location</span>
+                </button>
+
+                <button class="btn btn-secondary" onclick="findRoute()">
+                    <i class="fas fa-route"></i> <span>Find Safe Route</span>
+                </button>
+
+                <button class="btn btn-success" onclick="toggleDangerZones()">
+                    <i class="fas fa-exclamation-triangle"></i> <span>Toggle Danger Zones</span>
+                </button>
+
+                <button class="btn btn-warning" onclick="emergencyMode()">
+                    <i class="fas fa-ambulance"></i> <span>Emergency</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+
+        <div class="status-panel">
+            <div class="status-item status-info">
+                <i class="fas fa-info-circle"></i>
+                <span id="statusText">Ready to navigate. Click "Get My Location" to start.</span>
+            </div>
+
+            <div class="status-item status-success" id="locationStatus" style="display: none;">
+                <i class="fas fa-map-pin"></i>
+                <span>Location services active</span>
+            </div>
+
+            <div class="status-item status-warning" id="dangerStatus" style="display: none;">
+                <i class="fas fa-shield-alt"></i>
+                <span>Danger zones monitoring enabled</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-panel" aria-live="polite">
+        <div class="weather-info">
+            <div class="weather-temp" id="temperature">--°C</div>
+            <div class="weather-desc" id="weatherDesc">Loading weather...</div>
+        </div>
+
+        <div style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span style="color: #27ae60;"><i class="fas fa-shield-alt"></i> Safe Routes:</span>
+                <span id="safeRoutes">0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="color: #e74c3c;"><i class="fas fa-exclamation-triangle"></i> Danger Zones:</span>
+                <span id="dangerCount">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" crossorigin=""></script>
+
+    <script>
+        let map;
+        let userMarker = null;
+        let dangerZones = [];          // store circle layers
+        let dangerLayerGroup = null;   // group for easier toggle
+        let showDangerZones = false;
+        let userLocation = null;       // [lat, lng]
+        let lastRouteLayer = null;     // to clear previous route
+
+        // Initialize map
+        function initMap() {
+            map = L.map('map').setView([20.5937, 78.9629], 5); // India center
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Prepare layer group for danger zones
+            dangerLayerGroup = L.layerGroup().addTo(map);
+
+            // Add some sample danger zones
+            addSampleDangerZones();
+
+            updateStatusText('Map initialized. Ready to navigate.', 'info');
+        }
+
+        // Get current location
+        function getCurrentLocation() {
+            if (!navigator.geolocation) {
+                showNotification('Geolocation is not supported by this browser.', 'error');
+                return;
+            }
+
+            updateStatusText('Getting your location...', 'loading');
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    userLocation = [lat, lng];
+
+                    // Update map view
+                    map.setView([lat, lng], 15);
+
+                    // Add/update user marker with animation
+                    if (userMarker) {
+                        userMarker.setLatLng([lat, lng]);
+                    } else {
+                        userMarker = L.marker([lat, lng], {
+                            icon: L.divIcon({
+                                html: '<div class="pulse" style="background: #667eea; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 6px rgba(102,126,234,0.12);"></div>',
+                                iconSize: [20, 20],
+                                className: 'user-location-marker'
+                            })
+                        }).addTo(map);
+                    }
+
+                    // Reverse geocoding to get address (Nominatim)
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const address = data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                            document.getElementById('currentLocation').value = address;
+                            updateStatusText('Location found successfully!', 'success');
+                            document.getElementById('locationStatus').style.display = 'flex';
+                        })
+                        .catch(() => {
+                            // Fallback to coordinates if reverse geocoding fails
+                            document.getElementById('currentLocation').value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                            updateStatusText('Location found (address unavailable).', 'success');
+                            document.getElementById('locationStatus').style.display = 'flex';
+                        });
+
+                    showNotification('Location detected successfully!', 'success');
+
+                    // Simulate weather data
+                    updateWeatherInfo();
+
+                    // Check for nearby dangers
+                    checkNearbyDangers(lat, lng);
+                },
+                (error) => {
+                    let errorMessage = 'Unable to get location. ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED: errorMessage += 'Permission denied.'; break;
+                        case error.POSITION_UNAVAILABLE: errorMessage += 'Position unavailable.'; break;
+                        case error.TIMEOUT: errorMessage += 'Request timeout.'; break;
+                        default: errorMessage += 'Unknown error.'; break;
+                    }
+                    updateStatusText(errorMessage, 'error');
+                    showNotification(errorMessage, 'error');
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+            );
+        }
+
+        // Find route to destination
+        function findRoute() {
+            const destination = document.getElementById('destination').value.trim();
+
+            if (!userLocation) {
+                showNotification('Please get your current location first!', 'warning');
+                return;
+            }
+
+            if (!destination) {
+                showNotification('Please enter a destination!', 'warning');
+                return;
+            }
+
+            updateStatusText('Finding safe route...', 'loading');
+
+            // Geocode destination (Nominatim)
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destination)}&limit=1`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data || data.length === 0) {
+                        throw new Error('Destination not found');
+                    }
+
+                    const destLat = parseFloat(data[0].lat);
+                    const destLng = parseFloat(data[0].lon);
+
+                    // Remove previous route if any
+                    if (lastRouteLayer) {
+                        map.removeLayer(lastRouteLayer);
+                        lastRouteLayer = null;
+                    }
+
+                    // Simulate routing with danger avoidance points
+                    const avoidancePoints = calculateSafeRoute(userLocation, [destLat, destLng]);
+
+                    // Build route coordinates: start -> avoidance -> dest
+                    const routeCoords = [userLocation, ...avoidancePoints, [destLat, destLng]];
+
+                    const polyline = L.polyline(routeCoords, {
+                        color: '#27ae60',
+                        weight: 5,
+                        opacity: 0.9,
+                        dashArray: '10, 6'
+                    }).addTo(map);
+
+                    // Store the route so we can clear it later
+                    lastRouteLayer = polyline;
+
+                    // Add destination marker
+                    L.marker([destLat, destLng], {
+                        icon: L.divIcon({
+                            html: '<div style="background: #e74c3c; width: 25px; height: 25px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.3);"></div>',
+                            iconSize: [25, 25],
+                            className: 'destination-marker'
+                        })
+                    }).addTo(map).bindPopup(`<strong>${data[0].display_name || destination}</strong>`);
+
+                    // Fit map to show entire route
+                    try {
+                        map.fitBounds(polyline.getBounds(), { padding: [30, 30] });
+                    } catch (e) {
+                        // fallback: set view to destination
+                        map.setView([destLat, destLng], 14);
+                    }
+
+                    updateStatusText('Safe route calculated successfully!', 'success');
+                    showNotification('Safe route found! Avoiding danger zones.', 'success');
+
+                    // Update stats
+                    const safeRoutesElem = document.getElementById('safeRoutes');
+                    safeRoutesElem.textContent = parseInt(safeRoutesElem.textContent || '0', 10) + 1;
+                })
+                .catch(error => {
+                    updateStatusText('Could not find route to destination.', 'error');
+                    showNotification('Destination not found. Please try a different location.', 'error');
+                    console.warn('Routing error:', error);
+                });
+        }
+
+        // Toggle danger zones visibility
+        function toggleDangerZones() {
+            showDangerZones = !showDangerZones;
+
+            if (showDangerZones) {
+                dangerLayerGroup.addTo(map);
+                updateStatusText('Danger zones are now visible on the map.', 'warning');
+                document.getElementById('dangerStatus').style.display = 'flex';
+                showNotification('Danger zones enabled!', 'warning');
+            } else {
+                dangerLayerGroup.clearLayers();
+                // if we still want to keep danger zones in array, re-add them to group only when toggled on
+                updateStatusText('Danger zones hidden from view.', 'info');
+                document.getElementById('dangerStatus').style.display = 'none';
+                showNotification('Danger zones disabled.', 'success');
+            }
+
+            // if disabling, keep dangerZones array intact so we can re-add when toggling on
+            if (showDangerZones) {
+                dangerZones.forEach(z => dangerLayerGroup.addLayer(z));
+            }
+        }
+
+        // Emergency mode: finds nearby emergency services (simulated)
+        function emergencyMode() {
+            if (!userLocation) {
+                showNotification('Location required for emergency mode!', 'error');
+                return;
+            }
+
+            updateStatusText('Emergency mode activated! Finding nearest help...', 'loading');
+
+            const emergencyServices = [
+                { name: 'City Hospital', lat: userLocation[0] + 0.01, lng: userLocation[1] + 0.01, type: 'hospital' },
+                { name: 'Police Station', lat: userLocation[0] - 0.008, lng: userLocation[1] + 0.012, type: 'police' },
+                { name: 'Fire Station', lat: userLocation[0] + 0.015, lng: userLocation[1] - 0.005, type: 'fire' }
+            ];
+
+            emergencyServices.forEach(service => {
+                const icon = service.type === 'hospital' ? '🏥' : service.type === 'police' ? '🚔' : '🚒';
+                L.marker([service.lat, service.lng], {
+                    icon: L.divIcon({
+                        html: `<div style="font-size: 22px;">${icon}</div>`,
+                        iconSize: [28, 28],
+                        className: 'emergency-marker'
+                    })
+                }).bindPopup(`<strong>${service.name}</strong><br>Emergency ${service.type} service`).addTo(map);
+            });
+
+            showNotification('Emergency services located! Tap markers for details.', 'error');
+            updateStatusText('Emergency services found nearby.', 'success');
+        }
+
+        // Add sample danger zones (populates dangerZones array and group if visible)
+        function addSampleDangerZones() {
+            const zones = [
+                { lat: 19.0760, lng: 72.8777, radius: 2000, name: "High Crime Area", risk: "high" },
+                { lat: 28.6139, lng: 77.2090, radius: 1500, name: "Construction Zone", risk: "medium" },
+                { lat: 12.9716, lng: 77.5946, radius: 1000, name: "Flood Prone Area", risk: "high" },
+                { lat: 22.5726, lng: 88.3639, radius: 1800, name: "Political Unrest Zone", risk: "high" }
+            ];
+
+            zones.forEach(zone => {
+                const color = zone.risk === 'high' ? '#e74c3c' : '#f39c12';
+                const dangerCircle = L.circle([zone.lat, zone.lng], {
+                    color: color,
+                    fillColor: color,
+                    fillOpacity: 0.25,
+                    radius: zone.radius
+                }).bindPopup(`<strong>${zone.name}</strong><br>Risk Level: ${zone.risk.toUpperCase()}`);
+
+                dangerZones.push(dangerCircle);
+            });
+
+            // update UI count
+            document.getElementById('dangerCount').textContent = zones.length;
+
+            // If showDangerZones true (rare at init) add them
+            if (showDangerZones) {
+                dangerZones.forEach(z => dangerLayerGroup.addLayer(z));
+            }
+        }
+
+        // Calculate safe route avoiding danger zones (simple simulated approach)
+        function calculateSafeRoute(start, end) {
+            // Simple midpoint deviations - placeholder for real routing/avoidance logic
+            const midLat = (start[0] + end[0]) / 2;
+            const midLng = (start[1] + end[1]) / 2;
+            const offset = 0.01;
+
+            return [
+                [midLat + offset, midLng - offset],
+                [midLat - offset, midLng + offset]
+            ];
+        }
+
+        // Check for nearby dangers (simulated)
+        function checkNearbyDangers(lat, lng) {
+            setTimeout(() => {
+                const nearbyDangers = Math.floor(Math.random() * 3); // 0,1,2
+                if (nearbyDangers > 0) {
+                    showNotification(`Warning: ${nearbyDangers} danger zone(s) detected nearby!`, 'warning');
+                    updateStatusText(`Detected ${nearbyDangers} nearby danger zone(s). Stay alert.`, 'warning');
+                } else {
+                    updateStatusText('No immediate danger zones detected nearby.', 'success');
+                }
+            }, 1500);
+        }
+
+        // Update status text on UI
+        function updateStatusText(text, type = 'info') {
+            const statusElement = document.getElementById('statusText');
+            const iconMap = {
+                loading: `<span class="loading"><div class="spinner" aria-hidden="true"></div>`,
+                success: '<i class="fas fa-check-circle status-success"></i>',
+                error: '<i class="fas fa-times-circle status-danger"></i>',
+                warning: '<i class="fas fa-exclamation-triangle status-warning"></i>',
+                info: '<i class="fas fa-info-circle status-info"></i>'
+            };
+
+            const icon = iconMap[type] || iconMap.info;
+            if (type === 'loading') {
+                statusElement.innerHTML = `${icon} ${text}</span>`;
+            } else {
+                statusElement.innerHTML = `${icon} ${text}`;
+            }
+        }
+
+        // Show notification at top center
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.setAttribute('role', 'status');
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // auto remove after 3s with fade out
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    if (notification.parentNode) notification.parentNode.removeChild(notification);
+                }, 400);
+            }, 3000);
+        }
+
+        // Update (simulated) weather info
+        function updateWeatherInfo() {
+            const temps = [22, 25, 28, 30, 18, 15];
+            const conditions = ['Sunny', 'Cloudy', 'Rainy', 'Clear', 'Overcast', 'Windy'];
+            const temp = temps[Math.floor(Math.random() * temps.length)];
+            const condition = conditions[Math.floor(Math.random() * conditions.length)];
+            document.getElementById('temperature').textContent = `${temp}°C`;
+            document.getElementById('weatherDesc').textContent = condition;
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key.toLowerCase()) {
+                    case 'l': e.preventDefault(); getCurrentLocation(); break;
+                    case 'r': e.preventDefault(); findRoute(); break;
+                    case 'd': e.preventDefault(); toggleDangerZones(); break;
+                }
+            }
+        });
+
+        // Initialize on DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            updateWeatherInfo();
+
+            // Auto-detect location on load (best-effort)
+            setTimeout(() => {
+                getCurrentLocation();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

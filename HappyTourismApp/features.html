@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelGenie Pro</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f6f9;
+      color: #333;
+    }
+    header {
+      background: linear-gradient(135deg, #007bff, #00d4ff);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      background: #0056b3;
+    }
+    nav button {
+      background: transparent;
+      border: none;
+      color: white;
+      padding: 14px 20px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    nav button:hover, nav button.active {
+      background: #003f7f;
+    }
+    section {
+      padding: 20px;
+      display: none;
+    }
+    section.active {
+      display: block;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      margin: 10px 0;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .result {
+      margin-top: 15px;
+      padding: 15px;
+      background: #e9f7ef;
+      border: 1px solid #d4edda;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌍 TravelGenie Pro</h1>
+    <p>Your AI-powered travel buddy</p>
+  </header>
+
+  <nav>
+    <button class="active" onclick="showSection('planner')">Planner</button>
+    <button onclick="showSection('weather')">Weather</button>
+    <button onclick="showSection('currency')">Currency</button>
+  </nav>
+
+  <!-- Planner -->
+  <section id="planner" class="active">
+    <div class="card">
+      <h2>Plan Your Trip</h2>
+      <label>Destination: <input type="text" id="destination"></label><br><br>
+      <label>Budget ($): <input type="number" id="budget"></label><br><br>
+      <label>Days: <input type="number" id="days"></label><br><br>
+      <button onclick="generatePlan()">Generate Plan</button>
+      <div id="planResult" class="result"></div>
+    </div>
+  </section>
+
+  <!-- Weather -->
+  <section id="weather">
+    <div class="card">
+      <h2>🌦 Live Weather</h2>
+      <p id="weatherStatus">Fetching your location & weather...</p>
+    </div>
+  </section>
+
+  <!-- Currency -->
+  <section id="currency">
+    <div class="card">
+      <h2>💱 Currency Converter</h2>
+      <label>Amount (USD): <input type="number" id="usd" value="1"></label><br><br>
+      <button onclick="convertCurrency()">Convert</button>
+      <div id="currencyResult" class="result"></div>
+    </div>
+  </section>
+
+  <script>
+    // Section toggle
+    function showSection(id) {
+      document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+      document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      event.target.classList.add("active");
+    }
+
+    // Travel Plan
+    function generatePlan() {
+      const dest = document.getElementById("destination").value;
+      const budget = parseInt(document.getElementById("budget").value);
+      const days = parseInt(document.getElementById("days").value);
+
+      if (!dest || !budget || !days) {
+        alert("Please fill all fields!");
+        return;
+      }
+
+      const daily = (budget / days).toFixed(2);
+      document.getElementById("planResult").innerHTML =
+        `<b>Destination:</b> ${dest}<br>
+         <b>Total Budget:</b> $${budget}<br>
+         <b>Trip Length:</b> ${days} days<br>
+         <b>Daily Spend:</b> $${daily}`;
+    }
+
+    // Currency Converter (USD to INR example)
+    async function convertCurrency() {
+      const usd = document.getElementById("usd").value;
+      try {
+        let res = await fetch("https://api.exchangerate-api.com/v4/latest/USD");
+        let data = await res.json();
+        let inr = (usd * data.rates.INR).toFixed(2);
+        document.getElementById("currencyResult").innerText = 
+          `${usd} USD = ₹${inr} INR`;
+      } catch {
+        document.getElementById("currencyResult").innerText = "Error fetching rates.";
+      }
+    }
+
+    // 🌦 Live Weather Detection
+    async function fetchWeather(lat, lon) {
+      const apiKey = "YOUR_API_KEY"; // 🔑 Replace with your OpenWeatherMap API key
+      try {
+        let res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`);
+        let data = await res.json();
+        document.getElementById("weatherStatus").innerText =
+          `📍 ${data.name}\n🌡 ${data.main.temp}°C | ${data.weather[0].description}`;
+      } catch {
+        document.getElementById("weatherStatus").innerText = "Unable to fetch weather.";
+      }
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => fetchWeather(pos.coords.latitude, pos.coords.longitude),
+        () => document.getElementById("weatherStatus").innerText = "Location access denied."
+      );
+    } else {
+      document.getElementById("weatherStatus").innerText = "Geolocation not supported.";
+    }
+  </script>
+</body>
+</html>

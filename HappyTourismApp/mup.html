@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline Route Demo (Hyderabad - Delhi)</title>
+  <style>
+    body, html { margin: 0; padding: 0; height: 100%; }
+    #map {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: url('3.jpeg') no-repeat center center;
+      background-size: cover; /* Use india_map.jpg as fake background */
+    }
+    .marker {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: red;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .label {
+      position: absolute;
+      background: white;
+      padding: 2px 5px;
+      border: 1px solid black;
+      font-size: 12px;
+    }
+    .route {
+      position: absolute;
+      width: 2px;
+      background: blue;
+      transform-origin: top left;
+    }
+  </style>
+</head>
+<body>
+  <div id="map">
+    <!-- Hyderabad -->
+    <div class="marker" style="top: 60%; left: 50%;"></div>
+    <div class="label" style="top: 63%; left: 52%;">Hyderabad</div>
+
+    <!-- Delhi -->
+    <div class="marker" style="top: 30%; left: 55%;"></div>
+    <div class="label" style="top: 33%; left: 57%;">Delhi</div>
+
+    <!-- Fake Route -->
+    <div class="route" id="route"></div>
+  </div>
+
+  <script>
+    // Draw a fake "route" line between Hyderabad and Delhi
+    const route = document.getElementById("route");
+
+    // Start and end coordinates in % of map
+    const start = {x: 50, y: 60}; // Hyderabad
+    const end = {x: 55, y: 30};   // Delhi
+
+    // Calculate distance and angle for the route line
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const length = Math.sqrt(dx*dx + dy*dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    // Position the route
+    route.style.top = start.y + "%";
+    route.style.left = start.x + "%";
+    route.style.height = length + "%";
+    route.style.transform = `rotate(${angle}deg)`;
+  </script>
+</body>
+</html>

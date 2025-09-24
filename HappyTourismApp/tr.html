@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Safety Guard - Emergency App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      max-width: 420px;
+      margin: 0 auto;
+      background: white;
+    }
+
+    .header {
+      background: #dc2626;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .header h1 { font-size: 24px; margin-bottom: 5px; }
+
+    .container { padding: 20px; }
+
+    .panic-section { text-align: center; margin: 30px 0; }
+
+    .panic-btn {
+      width: 150px; height: 150px; border-radius: 50%;
+      background: #dc2626; color: white; border: none;
+      font-size: 18px; font-weight: bold; cursor: pointer;
+      transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .panic-btn:hover { background: #b91c1c; transform: scale(1.05); }
+    .panic-btn:active { transform: scale(0.95); }
+    .panic-btn.sending { background: #991b1b; animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .quick-actions {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 15px; margin: 30px 0;
+    }
+
+    .action-btn {
+      padding: 15px; border: none; border-radius: 8px;
+      color: white; font-size: 16px; cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .police-btn { background: #2563eb; }
+    .police-btn:hover { background: #1d4ed8; }
+    .ambulance-btn { background: #dc2626; }
+    .ambulance-btn:hover { background: #b91c1c; }
+    .location-btn { background: #16a34a; }
+    .location-btn:hover { background: #15803d; }
+    .sms-btn { background: #ea580c; }
+    .sms-btn:hover { background: #c2410c; }
+    .fakecall-btn { background: #9333ea; }
+    .fakecall-btn:hover { background: #7e22ce; }
+
+    .location-display {
+      background: #f3f4f6; padding: 15px; border-radius: 8px;
+      margin: 20px 0;
+    }
+    .location-display h3 { color: #374151; margin-bottom: 8px; }
+
+    .contacts-section { margin: 30px 0; }
+    .contacts-section h2 { color: #374151; margin-bottom: 15px; }
+    .contact-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px; background: #f9fafb; border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .contact-info h4 { color: #111827; margin-bottom: 3px; }
+    .contact-info p { color: #6b7280; font-size: 14px; }
+
+    .call-btn {
+      background: #16a34a; color: white; border: none;
+      padding: 8px 16px; border-radius: 5px; cursor: pointer;
+    }
+    .call-btn:hover { background: #15803d; }
+
+    .safety-tips {
+      background: #fef3c7; border-left: 4px solid #f59e0b;
+      padding: 15px; margin: 20px 0;
+    }
+    .safety-tips h3 { color: #92400e; margin-bottom: 10px; }
+    .safety-tips p { color: #78350f; line-height: 1.4; }
+
+    .emergency-guide { margin: 30px 0; }
+    .guide-item {
+      background: white; border: 1px solid #e5e7eb;
+      border-radius: 8px; padding: 15px; margin-bottom: 15px;
+    }
+    .guide-item h4 { color: #dc2626; margin-bottom: 10px; }
+    .guide-item ul { color: #4b5563; padding-left: 20px; }
+    .guide-item li { margin-bottom: 5px; line-height: 1.4; }
+
+    .status-bar {
+      position: fixed; top: 0; left: 50%;
+      transform: translateX(-50%);
+      background: #059669; color: white; padding: 5px 15px;
+      border-radius: 0 0 15px 15px; font-size: 12px;
+      z-index: 1000; display: none;
+    }
+
+    @media (max-width: 480px) {
+      .container { padding: 15px; }
+      .panic-btn { width: 120px; height: 120px; font-size: 16px; }
+      .quick-actions { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="status-bar" id="statusBar">Location tracking active</div>
+
+  <div class="header">
+    <h1>🛡️ Safety Guard</h1>
+    <p>Emergency Protection App</p>
+  </div>
+
+  <div class="container">
+    <!-- Panic Button -->
+    <div class="panic-section">
+      <button class="panic-btn" id="panicBtn" onclick="triggerPanic()">EMERGENCY<br>HELP</button>
+      <p style="margin-top: 10px; color: #6b7280;">Press for immediate help</p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <button class="action-btn police-btn" onclick="callNumber('100')">📞 Police (100)</button>
+      <button class="action-btn ambulance-btn" onclick="callNumber('102')">🚑 Ambulance (102)</button>
+      <button class="action-btn location-btn" onclick="shareLocation()">📍 Share Location</button>
+      <button class="action-btn sms-btn" onclick="sendEmergencySMS()">📱 Alert Contacts</button>
+      <button class="action-btn fakecall-btn" onclick="fakeCall()">📲 Fake Call</button>
+    </div>
+
+    <!-- Location Display -->
+    <div class="location-display">
+      <h3>📍 Current Location</h3>
+      <p id="locationText">Getting location...</p>
+      <p style="font-size: 12px; color: #6b7280; margin-top: 5px;" id="locationTime"></p>
+    </div>
+
+    <!-- Emergency Contacts -->
+    <div class="contacts-section">
+      <h2>Emergency Services</h2>
+      <div class="contact-item">
+        <div class="contact-info"><h4>Police Control Room</h4><p>100 - Available 24/7</p></div>
+        <button class="call-btn" onclick="callNumber('100')">Call</button>
+      </div>
+      <div class="contact-item">
+        <div class="contact-info"><h4>Ambulance Service</h4><p>102 - Medical Emergency</p></div>
+        <button class="call-btn" onclick="callNumber('102')">Call</button>
+      </div>
+      <div class="contact-item">
+        <div class="contact-info"><h4>Fire Department</h4><p>101 - Fire Emergency</p></div>
+        <button class="call-btn" onclick="callNumber('101')">Call</button>
+      </div>
+      <div class="contact-item">
+        <div class="contact-info"><h4>Women Helpline</h4><p>1091 - Women in Distress</p></div>
+        <button class="call-btn" onclick="callNumber('1091')">Call</button>
+      </div>
+    </div>
+
+    <!-- Terrorist Attack Awareness -->
+    <div class="guide-item">
+      <h4>🚨 In Case of Terrorist Attack</h4>
+      <ul>
+        <li>Move to a safe zone quickly (police station, army camp, public shelter).</li>
+        <li>Do NOT crowd near incident area.</li>
+        <li>Stay low & away from windows in gunfire.</li>
+        <li>Report suspicious activity to 100 or 112 immediately.</li>
+        <li>Use this app to alert your family & authorities.</li>
+      </ul>
+    </div>
+
+    <!-- Safe Zones -->
+    <div class="guide-item">
+      <h4>🛡️ Nearby Safe Zones</h4>
+      <ul id="safeZones">
+        <li>Loading safe zones...</li>
+      </ul>
+    </div>
+
+    <!-- News/Alerts -->
+    <div class="guide-item">
+      <h4>📰 Safety News & Alerts</h4>
+      <ul>
+        <li>Stay alert in Jammu & Kashmir tourist spots – avoid isolated routes.</li>
+        <li>Follow govt advisories on large gatherings.</li>
+      </ul>
+    </div>
+
+    <!-- Safety Tips -->
+    <div class="safety-tips">
+      <h3>⚠️ Safety Alert</h3>
+      <p>Stay alert in crowded places. Trust your instincts. If something feels wrong, move to safety immediately and call for help.</p>
+    </div>
+  </div>
+
+  <script>
+    let currentLocation = null;
+    let panicActive = false;
+
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            updateLocationDisplay();
+            document.getElementById('statusBar').style.display = 'block';
+            loadSafeZones();
+          },
+          () => { document.getElementById('locationText').textContent = 'Location access denied'; }
+        );
+      } else {
+        document.getElementById('locationText').textContent = 'Location not supported';
+      }
+    }
+
+    function updateLocationDisplay() {
+      if (currentLocation) {
+        document.getElementById('locationText').textContent =
+          `Lat: ${currentLocation.lat.toFixed(4)}, Lng: ${currentLocation.lng.toFixed(4)}`;
+        document.getElementById('locationTime').textContent =
+          'Updated: ' + new Date().toLocaleTimeString();
+      }
+    }
+
+    function triggerPanic() {
+      if (panicActive) return;
+      panicActive = true;
+      const btn = document.getElementById('panicBtn');
+      btn.textContent = 'SENDING ALERT...';
+      btn.classList.add('sending');
+
+      setTimeout(() => {
+        let message = '🚨 EMERGENCY ALERT 🚨\n\nTime: ' + new Date().toLocaleString() + '\n';
+        if (currentLocation) {
+          message += `Location: ${currentLocation.lat.toFixed(4)}, ${currentLocation.lng.toFixed(4)}\n`;
+          message += `Maps: https://maps.google.com/?q=${currentLocation.lat},${currentLocation.lng}\n`;
+        } else message += 'Location: Unable to determine\n';
+        message += '\n🔴 ALERT SENT TO:\n• Police (100)\n• Emergency Contacts\n• Family Members\n\nHelp is on the way!';
+        alert(message);
+        btn.textContent = 'EMERGENCY\nHELP';
+        btn.classList.remove('sending');
+        panicActive = false;
+      }, 3000);
+    }
+
+    function callNumber(number) {
+      if (confirm(`Call ${number}?`)) window.open(`tel:${number}`);
+    }
+
+    function shareLocation() {
+      if (!currentLocation) { alert('Location not available. Enable GPS.'); return; }
+      const url = `https://maps.google.com/?q=${currentLocation.lat},${currentLocation.lng}`;
+      const msg = `🚨 EMERGENCY - My Location:\n${url}\n\nTime: ${new Date().toLocaleString()}`;
+      if (navigator.share) navigator.share({ title: 'Emergency Location', text: msg }).catch(() => copyToClipboard(msg));
+      else copyToClipboard(msg);
+    }
+
+    function copyToClipboard(text) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => alert('Copied emergency message to clipboard!'));
+      }
+    }
+
+    function sendEmergencySMS() {
+      let msg = '🚨 EMERGENCY ALERT 🚨\nI need immediate help!\nTime: ' + new Date().toLocaleString() + '\n';
+      if (currentLocation) msg += `Location: https://maps.google.com/?q=${currentLocation.lat},${currentLocation.lng}`;
+      window.open('sms:?body=' + encodeURIComponent(msg));
+    }
+
+    // Fake Call feature
+    function fakeCall() {
+      alert("📲 Incoming Call: 'Dad'...\n\nUse this fake call as an excuse to escape unsafe situations.");
+    }
+
+    // Load safe zones (dummy)
+    function loadSafeZones() {
+      const list = document.getElementById('safeZones');
+      list.innerHTML = `
+        <li>Nearest Police Station - 1.2 km</li>
+        <li>Army Checkpost - 2.5 km</li>
+        <li>Community Shelter - 3 km</li>`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      getLocation();
+      setInterval(getLocation, 30000);
+    });
+  </script>
+</body>
+</html>

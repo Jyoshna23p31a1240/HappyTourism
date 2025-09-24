@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Currency Converter Pro - Travel Edition</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); min-height:100vh; padding:20px; }
+.container { max-width:500px; margin:0 auto; background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); border-radius:20px; padding:30px; box-shadow:0 20px 40px rgba(0,0,0,0.1); }
+.header { text-align:center; margin-bottom:30px; }
+.header h1 { color:#333; font-size:28px; margin-bottom:10px; }
+.currency-input { margin-bottom:20px; }
+.currency-input select, .currency-input input { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; margin-top:5px; font-size:16px; }
+.result-section { text-align:center; font-size:20px; font-weight:bold; margin-top:20px; color:#333; }
+.swap-btn { background:#667eea; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; margin:10px auto; display:block; }
+.quick-amounts { display:flex; justify-content:space-between; margin-top:10px; }
+.quick-amounts button { padding:5px 10px; border:none; border-radius:5px; background:#f0f0f0; cursor:pointer; }
+.quick-amounts button:hover { background:#667eea; color:white; }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>💱 Currency Converter Pro</h1>
+        <p>Real-time exchange rates for smart travelers</p>
+    </div>
+
+    <div class="currency-input">
+        <label>From Currency:</label>
+        <select id="from-currency">
+            <option value="USD" data-flag="🇺🇸">USD - US Dollar</option>
+            <option value="EUR" data-flag="🇪🇺">EUR - Euro</option>
+            <option value="GBP" data-flag="🇬🇧">GBP - British Pound</option>
+            <option value="JPY" data-flag="🇯🇵">JPY - Japanese Yen</option>
+            <option value="AUD" data-flag="🇦🇺">AUD - Australian Dollar</option>
+            <option value="CAD" data-flag="🇨🇦">CAD - Canadian Dollar</option>
+            <option value="CHF" data-flag="🇨🇭">CHF - Swiss Franc</option>
+            <option value="CNY" data-flag="🇨🇳">CNY - Chinese Yuan</option>
+            <option value="INR" data-flag="🇮🇳" selected>INR - Indian Rupee</option>
+            <option value="SGD" data-flag="🇸🇬">SGD - Singapore Dollar</option>
+            <option value="HKD" data-flag="🇭🇰">HKD - Hong Kong Dollar</option>
+            <option value="THB" data-flag="🇹🇭">THB - Thai Baht</option>
+            <option value="AED" data-flag="🇦🇪">AED - UAE Dirham</option>
+            <option value="SAR" data-flag="🇸🇦">SAR - Saudi Riyal</option>
+        </select>
+        <input type="number" id="from-amount" value="100">
+    </div>
+
+    <button class="swap-btn" onclick="swapCurrencies()">⇅ Swap</button>
+
+    <div class="currency-input">
+        <label>To Currency:</label>
+        <select id="to-currency">
+            <option value="USD" data-flag="🇺🇸">USD - US Dollar</option>
+            <option value="EUR" data-flag="🇪🇺">EUR - Euro</option>
+            <option value="GBP" data-flag="🇬🇧">GBP - British Pound</option>
+            <option value="JPY" data-flag="🇯🇵">JPY - Japanese Yen</option>
+            <option value="AUD" data-flag="🇦🇺">AUD - Australian Dollar</option>
+            <option value="CAD" data-flag="🇨🇦">CAD - Canadian Dollar</option>
+            <option value="CHF" data-flag="🇨🇭">CHF - Swiss Franc</option>
+            <option value="CNY" data-flag="🇨🇳">CNY - Chinese Yuan</option>
+            <option value="INR" data-flag="🇮🇳" selected>INR - Indian Rupee</option>
+            <option value="SGD" data-flag="🇸🇬">SGD - Singapore Dollar</option>
+            <option value="HKD" data-flag="🇭🇰">HKD - Hong Kong Dollar</option>
+            <option value="THB" data-flag="🇹🇭">THB - Thai Baht</option>
+            <option value="AED" data-flag="🇦🇪">AED - UAE Dirham</option>
+            <option value="SAR" data-flag="🇸🇦">SAR - Saudi Riyal</option>
+        </select>
+        <input type="number" id="to-amount" readonly>
+    </div>
+
+    <div class="quick-amounts">
+        <button onclick="setQuickAmount(100)">100</button>
+        <button onclick="setQuickAmount(500)">500</button>
+        <button onclick="setQuickAmount(1000)">1000</button>
+        <button onclick="setQuickAmount(5000)">5000</button>
+    </div>
+
+    <div class="result-section" id="result-text">Converted Amount Appears Here</div>
+</div>
+
+<script>
+// Full exchange rates
+const exchangeRates = {
+    USD: { INR:83.15, EUR:0.92, GBP:0.79, JPY:149.5, AUD:1.52, CAD:1.36, CHF:0.88, CNY:7.24, SGD:1.35, HKD:7.83, THB:35.8, AED:3.67, SAR:3.75 },
+    EUR: { USD:1.09, INR:90.42, GBP:0.86, JPY:162.8, AUD:1.65, CAD:1.48, CHF:0.96, CNY:7.89, SGD:1.47, HKD:8.53, THB:39.0, AED:4.00, SAR:4.09 },
+    GBP: { USD:1.27, INR:105.32, EUR:1.16, JPY:189.2, AUD:1.92, CAD:1.72, CHF:1.11, CNY:9.17, SGD:1.71, HKD:9.92, THB:45.3, AED:4.66, SAR:4.76 },
+    JPY: { USD:0.00669, INR:0.556, EUR:0.00614, GBP:0.00528, AUD:0.01017, CAD:0.00910, CHF:0.00588, CNY:0.04842, SGD:0.00902, HKD:0.05238, THB:0.2394, AED:0.02454, SAR:0.02509 },
+    AUD: { USD:0.658, INR:54.71, EUR:0.606, GBP:0.521, JPY:98.36, CAD:0.895, CHF:0.578, CNY:4.764, SGD:0.887, HKD:5.154, THB:23.55, AED:2.417, SAR:2.468 },
+    CAD: { USD:0.735, INR:61.12, EUR:0.677, GBP:0.582, JPY:109.96, AUD:1.117, CHF:0.646, CNY:5.324, SGD:0.991, HKD:5.757, THB:26.32, AED:2.700, SAR:2.757 },
+    CHF: { USD:1.138, INR:94.59, EUR:1.048, GBP:0.901, JPY:170.11, AUD:1.730, CAD:1.548, CNY:8.242, SGD:1.535, HKD:8.912, THB:40.73, AED:4.179, SAR:4.270 },
+    CNY: { USD:0.1381, INR:11.49, EUR:0.1267, GBP:0.1091, JPY:20.65, AUD:0.2099, CAD:0.1878, CHF:0.1213, SGD:0.1863, HKD:1.081, THB:4.944, AED:0.5070, SAR:0.5182 },
+    INR: { USD:0.01202, EUR:0.01105, GBP:0.00949, JPY:1.798, AUD:0.01828, CAD:0.01636, CHF:0.01058, CNY:0.08704, SGD:0.01623, HKD:0.09416, THB:0.4304, AED:0.04412, SAR:0.04509 },
+    SGD: { USD:0.741, INR:61.67, EUR:0.683, GBP:0.587, JPY:110.88, AUD:1.128, CAD:1.009, CHF:0.651, CNY:5.368, HKD:5.809, THB:26.56, AED:2.724, SAR:2.783 },
+    HKD: { USD:0.1276, INR:10.62, EUR:0.1173, GBP:0.1009, JPY:19.09, AUD:0.1941, CAD:0.1738, CHF:0.1122, CNY:0.9251, SGD:0.1722, THB:4.572, AED:0.4689, SAR:0.4791 },
+    THB: { USD:0.0279, INR:2.32, EUR:0.0256, GBP:0.0221, JPY:4.177, AUD:0.0425, CAD:0.0380, CHF:0.0245, CNY:0.2023, SGD:0.0376, HKD:0.2188, AED:0.1026, SAR:0.1048 },
+    AED: { USD:0.272, INR:22.66, EUR:0.250, GBP:0.215, JPY:40.74, AUD:0.414, CAD:0.370, CHF:0.239, CNY:1.973, SGD:0.367, HKD:2.133, THB:9.750, SAR:1.021 },
+    SAR: { USD:0.267, INR:22.18, EUR:0.245, GBP:0.210, JPY:39.88, AUD:0.405, CAD:0.363, CHF:0.234, CNY:1.930, SGD:0.359, HKD:2.089, THB:9.543, AED:0.980 }
+};
+
+// Convert
+function convert() {
+    const from = document.getElementById('from-currency').value;
+    const to = document.getElementById('to-currency').value;
+    const amount = parseFloat(document.getElementById('from-amount').value) || 0;
+    const result = (amount * exchangeRates[from][to]).toFixed(2);
+    document.getElementById('to-amount').value = result;
+    document.getElementById('result-text').innerText = `${amount} ${from} = ${result} ${to}`;
+}
+
+// Swap
+function swapCurrencies() {
+    const from = document.getElementById('from-currency');
+    const to = document.getElementById('to-currency');
+    const temp = from.value;
+    from.value = to.value;
+    to.value = temp;
+    convert();
+}
+
+// Quick amounts
+function setQuickAmount(amount) {
+    document.getElementById('from-amount').value = amount;
+    convert();
+}
+
+// Event listeners
+document.getElementById('from-currency').addEventListener('change', convert);
+document.getElementById('to-currency').addEventListener('change', convert);
+document.getElementById('from-amount').addEventListener('input', convert);
+
+// Initialize
+convert();
+</script>
+</body>
+</html>

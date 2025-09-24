@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guides - Happy Tourism</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { background: #f4f6f9; color: #333; padding: 20px; }
+    h1 { text-align: center; margin-bottom: 20px; color: #4CAF50; }
+    .guide-list { max-width: 600px; margin: auto; }
+    .guide-item {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+    .guide-item:hover { transform: scale(1.02); }
+  </style>
+</head>
+<body>
+  <h1>Guides</h1>
+  <div class="guide-list" id="guideList"></div>
+
+  <script>
+    // Array of guides
+    const guides = [
+      { name: "Hyderabad City Tour", description: "Explore the historical monuments and local culture." },
+      { name: "Charminar Guide", description: "Learn about the history, timings, and nearby attractions." },
+      { name: "Ramoji Film City", description: "Tips for visiting, best spots, and ticket info." },
+      { name: "Local Cuisine Tour", description: "Discover must-try foods and street food guides." }
+    ];
+
+    const guideList = document.getElementById("guideList");
+
+    // Automatically display guides on page load
+    window.onload = function() {
+      guides.forEach(guide => {
+        const div = document.createElement("div");
+        div.className = "guide-item";
+        div.innerHTML = `<h3>${guide.name}</h3><p>${guide.description}</p>`;
+        guideList.appendChild(div);
+      });
+    };
+  </script>
+</body>
+</html>

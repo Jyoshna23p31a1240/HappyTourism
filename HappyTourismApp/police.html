@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tourist Safety Dashboard</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  body, html { margin:0; padding:0; height:100%; font-family:Arial; display:flex; }
+  #sidebar { width:250px; background:#fff; border-right:1px solid #ccc; padding:10px; display:flex; flex-direction:column; justify-content:space-between; z-index: 1000;}
+  #map { flex:1; height:100vh; position:relative; z-index:0; }
+  #alerts { position:absolute; top:10px; right:10px; width:300px; max-height:80vh; overflow-y:auto; background:#fff; padding:10px; border-radius:5px; box-shadow:0 0 8px rgba(0,0,0,0.2); z-index:1000;}
+  h2,h3 { margin:5px 0; }
+  button { padding:4px 6px; margin-top:4px; font-size:12px; cursor:pointer; }
+  .alert-item { border-bottom:1px solid #ccc; padding:5px 0; margin-bottom:4px;}
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div>
+    <h2>Dashboard</h2>
+    <button onclick="simulateSOS()">Simulate SOS</button>
+  </div>
+  <div>
+    <h3>Officers</h3>
+    <ul id="officersList"></ul>
+  </div>
+</div>
+
+<div id="map"></div>
+
+<div id="alerts">
+  <h3>Live SOS Alerts</h3>
+  <div id="alertsList"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // Fix marker icons
+  delete L.Icon.Default.prototype._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png'
+  });
+
+  // Initialize map with default location (Rajahmundry)
+  const defaultLat = 17.0046;
+  const defaultLng = 81.7776;
+  const map = L.map('map').setView([defaultLat, defaultLng], 15);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  // Try to center map on user's location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position){
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      map.setView([lat,lng],16);
+      L.marker([lat,lng]).addTo(map).bindPopup("You are here").openPopup();
+      generateClusters(lat,lng);
+      generateOfficers(lat,lng);
+    }, function(error){
+      alert("Could not get your location, using default coordinates.");
+      generateClusters(defaultLat,defaultLng);
+      generateOfficers(defaultLat,defaultLng);
+    });
+  } else {
+    alert("Geolocation not supported, using default coordinates.");
+    generateClusters(defaultLat,defaultLng);
+    generateOfficers(defaultLat,defaultLng);
+  }
+
+  // Layers
+  const sosLayer = L.layerGroup().addTo(map);
+  const officerLayer = L.layerGroup().addTo(map);
+  const clusterLayer = L.layerGroup().addTo(map);
+
+  // Mock clusters
+  let touristClusters = [];
+  function generateClusters(lat,lng){
+    touristClusters = [
+      {lat: lat + 0.001, lng: lng + 0.001, intensity:0.8},
+      {lat: lat - 0.0015, lng: lng + 0.002, intensity:0.6},
+      {lat: lat + 0.002, lng: lng - 0.001, intensity:0.4}
+    ];
+    clusterLayer.clearLayers();
+    touristClusters.forEach(c=>{
+      L.circle([c.lat,c.lng],{
+        radius: 200 + c.intensity*400,
+        color:"#f97316",
+        fillColor:"#f97316",
+        fillOpacity:0.2+c.intensity*0.4
+      }).addTo(clusterLayer);
+    });
+  }
+
+  // Officers
+  let officers = [];
+  function generateOfficers(lat,lng){
+    officers = [
+      {id:"O-1", name:"Officer Kumar", lat:lat-0.002, lng:lng-0.002, available:true},
+      {id:"O-2", name:"Officer Meena", lat:lat+0.002, lng:lng+0.002, available:true}
+    ];
+    refreshOfficers();
+  }
+
+  function refreshOfficers(){
+    officerLayer.clearLayers();
+    const list = document.getElementById("officersList");
+    list.innerHTML="";
+    officers.forEach(o=>{
+      const li=document.createElement("li");
+      li.innerText=`${o.name} - ${o.available ? "Available":"Busy"}`;
+      list.appendChild(li);
+      L.marker([o.lat,o.lng]).addTo(officerLayer)
+        .bindPopup(`<strong>${o.name}</strong><br>Status: ${o.available?"Available":"Busy"}`);
+    });
+  }
+
+  // SOS
+  let sosAlerts = [];
+  function refreshSOS(){
+    sosLayer.clearLayers();
+    const container = document.getElementById("alertsList");
+    container.innerHTML="";
+    sosAlerts.forEach(s=>{
+      L.marker([s.lat,s.lng]).addTo(sosLayer)
+        .bindPopup(`<strong>${s.type} - ${s.id}</strong><br>${s.message}<br>Status: ${s.status}`);
+      const div = document.createElement("div");
+      div.className="alert-item";
+      div.innerHTML=`<strong>${s.type} - ${s.id}</strong><br>${s.message}<br>Status: ${s.status}<br>`;
+      officers.forEach(o=>{
+        if(o.available){
+          const btn=document.createElement("button");
+          btn.innerText=`Assign ${o.name}`;
+          btn.onclick=()=>assignOfficer(s.id,o.id);
+          div.appendChild(btn);
+        }
+      });
+      const resolveBtn=document.createElement("button");
+      resolveBtn.innerText="Resolve";
+      resolveBtn.onclick=()=>resolveSOS(s.id);
+      div.appendChild(resolveBtn);
+      container.appendChild(div);
+    });
+  }
+
+  function assignOfficer(sosId,officerId){
+    sosAlerts = sosAlerts.map(s=>s.id===sosId?{...s,status:`Assigned to ${officerId}`}:s);
+    officers = officers.map(o=>o.id===officerId?{...o,available:false}:o);
+    refreshSOS();
+    refreshOfficers();
+  }
+
+  function resolveSOS(sosId){
+    sosAlerts = sosAlerts.filter(s=>s.id!==sosId);
+    refreshSOS();
+  }
+
+  function simulateSOS(){
+    const center = map.getCenter();
+    const lat=center.lat + (Math.random()-0.5)*0.005;
+    const lng=center.lng + (Math.random()-0.5)*0.005;
+    const types=["Medical","Harassment","Theft","Lost"];
+    const t=types[Math.floor(Math.random()*types.length)];
+    const id=`SOS-${Math.floor(Math.random()*900+100)}`;
+    sosAlerts.unshift({id,type:t,lat,lng,message:`${t} reported`,status:"unassigned"});
+    refreshSOS();
+  }
+</script>
+</body>
+</html>

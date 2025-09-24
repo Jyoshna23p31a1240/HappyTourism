@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tourist Guardian App</title>
+<style>
+  body { margin:0; font-family: 'Segoe UI', sans-serif; background:#f9fafb; }
+  .app-container { max-width: 420px; margin:auto; background:white; min-height:100vh; position:relative; }
+  .header { color:white; padding:20px; position:relative; overflow:hidden; }
+  .header-gradient { position:absolute; inset:0; opacity:0.1; background:linear-gradient(90deg,transparent,white,transparent); transform: skewX(-12deg); animation: pulse 3s infinite; }
+  @keyframes pulse {0%,100%{opacity:0.1}50%{opacity:0.2}}
+  .header h1 { display:flex; align-items:center; font-size:1.5rem; margin-bottom:5px; }
+  .tabs { display:flex; justify-content:space-around; position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:420px; background:linear-gradient(90deg,#111,#000); border-top:1px solid #444; }
+  .tabs button { flex:1; padding:10px 0; color:#888; background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; font-size:0.75rem; transition:0.3s; }
+  .tabs button.active { color:white; background:linear-gradient(to top,#3b82f6,#8b5cf6); font-weight:bold; box-shadow:0 -2px 10px rgba(0,0,0,0.3); }
+  .tab-content { padding:20px; }
+  .card { background:white; border-radius:8px; padding:15px; margin-bottom:15px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+  .gradient-bg { background:linear-gradient(to right,#10b981,#3b82f6); padding:15px; border-radius:8px; color:white; margin-bottom:15px; }
+  .carousel-dots { display:flex; gap:5px; margin-top:5px; }
+  .carousel-dots span { width:8px; height:8px; border-radius:50%; display:inline-block; background:#ddd; }
+  .carousel-dots span.active { background:#3b82f6; }
+  .bar-container { background:#eee; border-radius:8px; height:10px; width:100%; margin-top:5px; }
+  .bar-fill { background:#3b82f6; height:10px; border-radius:8px; width:0%; transition:0.5s; }
+  .status-green { color:#047857; background:#d1fae5; padding:5px 10px; border-radius:5px; font-weight:bold; }
+  .status-red { color:#b91c1c; background:#fee2e2; padding:5px 10px; border-radius:5px; font-weight:bold; }
+  .pulse { animation: pulse 1s infinite; }
+</style>
+</head>
+<body>
+<div class="app-container">
+  <div class="header gradient-bg">
+    <h1>🛡️ Tourist Guardian</h1>
+    <p>Neural protection active</p>
+    <div class="header-gradient"></div>
+  </div>
+
+  <div class="tab-content" id="tabContent">
+    <!-- Dynamic content injected by JS -->
+  </div>
+
+  <div class="tabs">
+    <button class="active" data-tab="ai">AI Hub</button>
+    <button data-tab="predict">Predict</button>
+    <button data-tab="network">Network</button>
+    <button data-tab="voice">Voice AI</button>
+    <button data-tab="advanced">Advanced</button>
+  </div>
+</div>
+
+<script>
+  const tabs = document.querySelectorAll('.tabs button');
+  const tabContent = document.getElementById('tabContent');
+  let currentInsight = 0;
+
+  const aiInsights = [
+    'Unusual crowd pattern detected ahead - consider alternate route',
+    'Your stress levels elevated - nearby cafe recommended for 15min break',
+    'Weather turning bad - indoor activities suggested',
+    'Local festival starting - expect delays but safe cultural experience'
+  ];
+
+  const predictiveAlerts = [
+    { message: 'Heavy traffic expected on your route in 30 minutes', confidence:87 },
+    { message: 'Rain likely in 45 minutes - carry umbrella', confidence:92 },
+    { message: 'Tourist site will be crowded between 2-4 PM', confidence:78 }
+  ];
+
+  const safeZones = [
+    { name:'Hotel Lobby', distance:'50m', safety:95 },
+    { name:'Tourist Police Station', distance:'200m', safety:98 },
+    { name:'24/7 Pharmacy', distance:'150m', safety:90 }
+  ];
+
+  const biometrics = { heartRate:72, stressLevel:'normal' };
+  const crowdDensity = 65;
+
+  function renderTab(tab){
+    if(tab==='ai'){
+      tabContent.innerHTML = `
+        <div class="card">
+          <h3>AI Insights</h3>
+          <p id="aiInsight">${aiInsights[currentInsight]}</p>
+          <div class="carousel-dots">${aiInsights.map((_,i)=>`<span class="${i===currentInsight?'active':''}"></span>`).join('')}</div>
+        </div>
+        <div class="card">
+          <h3>Biometrics</h3>
+          <p>Heart Rate: ${biometrics.heartRate} BPM</p>
+          <p>Stress Level: <span class="${biometrics.stressLevel==='normal'?'status-green':'status-red'}">${biometrics.stressLevel}</span></p>
+        </div>
+      `;
+    } else if(tab==='predict'){
+      tabContent.innerHTML = `<div class="card">
+        <h3>Predictive Alerts</h3>
+        ${predictiveAlerts.map(alert=>`
+          <p>${alert.message} - ${alert.confidence}% confidence</p>
+          <div class="bar-container"><div class="bar-fill" style="width:${alert.confidence}%"></div></div>
+        `).join('')}
+        <p>Crowd Density: ${crowdDensity}%</p>
+        <div class="bar-container"><div class="bar-fill" style="width:${crowdDensity}%"></div></div>
+      </div>`;
+    } else if(tab==='network'){
+      tabContent.innerHTML = `<div class="card">
+        <h3>Safe Zones</h3>
+        ${safeZones.map(zone=>`
+          <p>${zone.name} - ${zone.distance} - Safety: ${zone.safety}%</p>
+        `).join('')}
+      </div>`;
+    } else if(tab==='voice'){
+      tabContent.innerHTML = `<div class="card">
+        <h3>Voice AI</h3>
+        <p>Tap to simulate voice command...</p>
+        <button onclick="alert('Simulated: Navigate to nearest safe zone')">Speak</button>
+      </div>`;
+    } else if(tab==='advanced'){
+      tabContent.innerHTML = `<div class="card">
+        <h3>Advanced Protection</h3>
+        <p>Stealth Mode Active</p>
+        <p>Biometric Security: Fingerprint & Face Active</p>
+      </div>`;
+    }
+  }
+
+  tabs.forEach(button=>{
+    button.addEventListener('click',()=>{
+      tabs.forEach(btn=>btn.classList.remove('active'));
+      button.classList.add('active');
+      renderTab(button.dataset.tab);
+    });
+  });
+
+  // Initial render
+  renderTab('ai');
+
+  // Rotate AI Insights
+  setInterval(()=>{
+    currentInsight = (currentInsight + 1) % aiInsights.length;
+    const aiInsightEl = document.getElementById('aiInsight');
+    if(aiInsightEl){
+      aiInsightEl.textContent = aiInsights[currentInsight];
+      const dots = document.querySelectorAll('.carousel-dots span');
+      dots.forEach((dot,i)=>dot.classList.toggle('active', i===currentInsight));
+    }
+  }, 3000);
+</script>
+</body>
+</html>

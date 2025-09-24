@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOS & Emergency - Happy Tourism</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+    h1 {
+      color: #e53935;
+      margin-bottom: 20px;
+    }
+    #sosBtn {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: #e53935;
+      color: #fff;
+      font-size: 22px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+      transition: transform 0.2s;
+    }
+    #sosBtn:hover {
+      transform: scale(1.1);
+    }
+    #sosToast {
+      display: none;
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 60px;
+      background: #222;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🚨 Emergency SOS</h1>
+  <p>Click the SOS button below to send your location and emergency message.</p>
+
+  <button id="sosBtn">SOS</button>
+  <div id="sosToast"></div>
+
+  <script>
+    const EMERGENCY_PHONE = "112"; // India national emergency
+    const SMS_CONTACTS = ["+911234567890"]; // Replace with real contacts
+
+    const toast = document.getElementById("sosToast");
+    function showToast(msg) {
+      toast.innerText = msg;
+      toast.style.display = "block";
+      setTimeout(() => toast.style.display = "none", 4000);
+    }
+
+    async function getLocation() {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) reject("No GPS support");
+        navigator.geolocation.getCurrentPosition(
+          pos => resolve(pos.coords),
+          err => reject(err)
+        );
+      });
+    }
+
+    document.getElementById("sosBtn").addEventListener("click", async () => {
+      showToast("Fetching location...");
+      try {
+        const coords = await getLocation();
+        const msg = `🚨 EMERGENCY 🚨\nLocation: https://maps.google.com/?q=${coords.latitude},${coords.longitude}`;
+        
+        // Open call dialer
+        window.location.href = `tel:${EMERGENCY_PHONE}`;
+
+        // Send SMS (works on mobile)
+        for (const num of SMS_CONTACTS) {
+          const sms = `sms:${num}?body=${encodeURIComponent(msg)}`;
+          setTimeout(() => window.open(sms, "_blank"), 600);
+        }
+
+        // Copy to clipboard (desktop fallback)
+        await navigator.clipboard.writeText(msg);
+        showToast("SOS sent! Location copied to clipboard.");
+      } catch (err) {
+        showToast("Could not get location");
+      }
+    });
+  </script>
+</body>
+</html>

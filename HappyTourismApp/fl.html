@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Tourist Safety Monitor - Live Safe Zone</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<style>
+  body { font-family: Arial, sans-serif; text-align:center; margin:0; padding:0; }
+  #map { height: 350px; margin: 10px; border:2px solid #007bff; border-radius:8px; }
+  .btn, select { padding:10px 15px; margin:5px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; }
+  .btnMap { background:#007bff; color:white; }
+  .btnLoc { background:#28a745; color:white; }
+  .btnGF { background:#ff9800; color:white; }
+  .btnSOS { background:#dc3545; color:white; }
+  .btnID { background:#6f42c1; color:white; }
+  #info { margin:10px; font-weight:bold; font-size:16px; min-height:40px; }
+
+  /* Animations */
+  @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+  @keyframes bounce { 0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);} }
+  @keyframes shake { 0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);} }
+
+  .fade { animation:fadeIn 0.8s ease; }
+  .safe { color:green; animation:bounce 1s ease infinite; }
+  .danger { color:red; animation:shake 0.5s ease infinite; }
+</style>
+</head>
+<body>
+
+<h2>🛡️ Smart Tourist Safety Monitor</h2>
+
+<button id="btnMap" class="btn btnMap">Show Map (MAP)</button>
+<button id="btnLoc" class="btn btnLoc">My Location (LOCATION)</button>
+<select id="radiusSelect">
+  <option value="100">100m</option>
+  <option value="500" selected>500m</option>
+  <option value="1000">1km</option>
+  <option value="2000">2km</option>
+</select>
+<button id="btnGF" class="btn btnGF">Check Safe Zone (GEOFENCE)</button>
+<button id="btnSOS" class="btn btnSOS">SOS Alert (SOS)</button>
+<button id="btnID" class="btn btnID">Generate Digital ID (ID)</button>
+
+<div id="map"></div>
+<div id="info">ℹ️ System Ready</div>
+<canvas id="qrCanvas" style="margin-top:10px;"></canvas>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<script>
+let map, userMarker, safeCircle, safeLine;
+let safeCenter = null; // live user location
+let safeRadiusMeters = 500;
+
+// Helper: info display
+function setInfo(msg, danger=false){
+  const info = document.getElementById('info');
+  info.innerHTML = msg;
+  info.className="fade";
+  if(danger) info.classList.add("danger");
+  else info.classList.add("safe");
+}
+
+// --- Show Map ---
+document.getElementById('btnMap').addEventListener('click', ()=>{
+  if(!map){
+    map = L.map('map').setView([20, 80], 5); // default center
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'© OpenStreetMap'
+    }).addTo(map);
+  }
+  setInfo("🌍 Map Loaded — keyword: MAP");
+});
+
+// --- My Location ---
+document.getElementById('btnLoc').addEventListener('click', ()=>{
+  if(!map){ setInfo("⚠️ Load Map first!", true); return; }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+
+    safeCenter = [lat, lon]; // live user location = safe zone center
+    safeRadiusMeters = parseInt(document.getElementById('radiusSelect').value);
+
+    if(userMarker) map.removeLayer(userMarker);
+    userMarker = L.marker(safeCenter).addTo(map).bindPopup("📍 You are here").openPopup();
+
+    if(safeCircle) map.removeLayer(safeCircle);
+    safeCircle = L.circle(safeCenter,{
+      color:"green",
+      fillColor:"#7CFC00",
+      fillOpacity:0.2,
+      radius:safeRadiusMeters
+    }).addTo(map);
+
+    map.setView(safeCenter,15);
+    setInfo(`📍 Location set. Safe Zone radius = ${safeRadiusMeters}m — keyword: LOCATION`);
+  }, ()=> setInfo("❌ Location access denied", true));
+});
+
+// --- Geofence Check ---
+document.getElementById('btnGF').addEventListener('click', ()=>{
+  if(!userMarker){ setInfo("⚠️ Click 'My Location' first", true); return; }
+  const userLatLng = userMarker.getLatLng();
+  const safeLatLng = L.latLng(safeCenter[0], safeCenter[1]);
+  const dist = userLatLng.distanceTo(safeLatLng);
+
+  if(safeLine) map.removeLayer(safeLine);
+  safeLine = L.polyline([userLatLng, safeLatLng],{
+    color:'blue', weight:3, dashArray:'6,6'
+  }).addTo(map);
+
+  if(dist <= safeRadiusMeters){
+    setInfo(`✅ You are SAFE inside zone.<br>Distance = ${Math.round(dist)}m — keyword: GEOFENCE`);
+  } else{
+    setInfo(`❌ You are OUTSIDE zone.<br>Go ${Math.round(dist)}m towards Safe Zone — keyword: GEOFENCE`, true);
+  }
+});
+
+// --- SOS Alert ---
+document.getElementById('btnSOS').addEventListener('click', ()=>{
+  setInfo("🚨 SOS Alert Sent! Authorities Notified — keyword: SOS", true);
+  alert("🚨 SOS Alert Sent to Authorities!");
+});
+
+// --- Digital ID ---
+document.getElementById('btnID').addEventListener('click', ()=>{
+  const id = "TID-" + Math.floor(Math.random()*1000000);
+  QRCode.toCanvas(document.getElementById('qrCanvas'), id, { width:120 }, err=>{
+    if(err) setInfo("❌ Failed to generate ID", true);
+    else setInfo(`🆔 Digital ID Generated — keyword: ID<br>ID: ${id}`);
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explore - Happy Tourism</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: url('img.webp') no-repeat center center fixed; background-size: cover; min-height: 100vh; display:flex; flex-direction:column; align-items:center; padding:20px; padding-bottom:80px; position:relative; overflow-x:hidden; }
+    .bg-text { position:absolute; top:40%; left:50%; transform:translate(-50%,-50%); font-size:3rem; font-weight:700; color:rgba(255,255,255,0.8); text-shadow:2px 2px 8px rgba(0,0,0,0.5); animation:fadeIn 3s ease-in-out; }
+    h1 { font-size:2rem; font-weight:700; color:#1a1a1a; margin-bottom:20px; display:flex; align-items:center; gap:10px; background: rgba(255,255,255,0.7); padding:8px 16px; border-radius:12px; animation:slideDown 1.5s ease; z-index:2; }
+    h1::after { content:"✈️"; font-size:1.5rem; }
+    .search-bar { width:100%; max-width:600px; background:white; border-radius:30px; display:flex; align-items:center; padding:12px 20px; box-shadow:0 4px 10px rgba(0,0,0,0.1); margin-bottom:25px; animation:fadeInUp 2s ease; z-index:2; }
+    .search-bar input { border:none; outline:none; flex:1; font-size:1rem; }
+    .search-bar button { background:#0077ff; border:none; color:white; padding:6px 14px; border-radius:20px; cursor:pointer; transition:0.3s; }
+    .search-bar button:hover { background:#005fcc; transform:scale(1.1); }
+    .grid { width:100%; max-width:700px; display:grid; grid-template-columns:repeat(2,1fr); gap:15px; z-index:2; }
+    .card { position:relative; border-radius:15px; overflow:hidden; color:white; font-weight:600; cursor:pointer; min-height:120px; display:flex; align-items:flex-end; padding:15px; background-size:cover; background-position:center; background-repeat:no-repeat; box-shadow:0 6px 15px rgba(0,0,0,0.15); transition: transform 0.4s, box-shadow 0.4s; animation:zoomIn 1s ease; }
+    .card:hover { transform: translateY(-8px) scale(1.05); box-shadow:0 12px 25px rgba(0,0,0,0.3); }
+    .bottom-nav { position:fixed; bottom:0; left:0; width:100%; background:#fff; display:flex; justify-content:space-around; padding:10px 0; box-shadow:0 -2px 10px rgba(0,0,0,0.1); z-index:3; }
+    .bottom-nav button { background:none; border:none; font-size:1.5rem; cursor:pointer; color:#666; transition:color 0.3s, transform 0.3s; }
+    .bottom-nav button.active, .bottom-nav button:hover { color:#0077ff; transform:scale(1.2); }
+    .overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:none; justify-content:center; align-items:center; z-index:1000; animation:fadeIn 0.5s ease; }
+    .popup { background-image:url('popup-bg.jpg'); background-size:cover; background-position:center; color:white; padding:20px; border-radius:15px; max-width:300px; width:90%; text-align:center; box-shadow:0 6px 20px rgba(0,0,0,0.3); animation:popUp 0.7s ease; }
+    .popup h2 { margin-bottom:15px; font-size:1.3rem; color:#fff; text-shadow:1px 1px 4px rgba(0,0,0,0.7); }
+    .popup button { display:block; width:100%; margin:8px 0; padding:10px; border:none; border-radius:8px; background: rgba(0, 119, 255, 0.85); color:white; cursor:pointer; transition: background 0.3s, transform 0.3s; }
+    .popup button:hover { background: rgba(0,95,204,0.9); transform:scale(1.05); }
+    .close-btn { margin-top:10px; background: rgba(200,200,200,0.8) !important; color:#333 !important; }
+    #locationBtnContainer { position:fixed; bottom:60px; left:50%; transform:translateX(-50%); z-index:1001; }
+
+    #safetyScoreDisplay { position:fixed; top:80px; right:20px; padding:15px 20px; border-radius:12px; font-weight:700; color:white; font-size:1.2rem; display:none; z-index:1002; }
+
+    @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+    @keyframes slideDown { from {transform:translateY(-50px); opacity:0;} to {transform:translateY(0); opacity:1;} }
+    @keyframes fadeInUp { from {transform:translateY(40px); opacity:0;} to {transform:translateY(0); opacity:1;} }
+    @keyframes zoomIn { from {transform:scale(0.9); opacity:0;} to {transform:scale(1); opacity:1;} }
+    @keyframes popUp { from {transform:scale(0.7); opacity:0;} to {transform:scale(1); opacity:1;} }
+  </style>
+</head>
+<body>
+  <div class="bg-text">Explore The World 🌍</div>
+  <h1>Welcome to Happy Tourism</h1>
+
+  <div class="search-bar">
+    <span>🔍</span>
+    <input type="text" id="place" placeholder="Search anything...">
+    <button onclick="openMap()">Go</button>
+  </div>
+
+  <div class="grid">
+    <div class="card" style="background-image: url('temple.webp');" onclick="openTempPage()"><h2>Temples</h2></div>
+    <div class="card" style="background-image: url('beach.jpeg');"><h2>Beaches</h2></div>
+    <div class="card" style="background-image: url('map.webp');" onclick="openMapsPage()"><h2>Maps</h2></div>
+    <div class="card" style="background-image: url('guide.jpeg');" onclick="openPopup()"><h2>Guides</h2></div>
+    <div class="card" style="background-image: url('food.webp');" onclick="openFoodSpots()"><h2>Food Spots</h2></div>
+    <div class="card" style="background-image: url('safety.jpg');" onclick="openSafetyTips()"><h2>Safety Tips</h2></div>
+</div>
+
+  </div>
+
+  <div class="overlay" id="guidePopup">
+    <div class="popup">
+      <h2>Guide Options</h2>
+      <button onclick="location.href='translator.html'">Translator</button>
+      <button onclick="location.href='famousfood.html'">Famous Food</button>
+      <button onclick="location.href='currency_convertor.html'">Currency Convertor</button>
+      <button onclick="location.href='famous.html'">Famous Places</button>
+        <button onclick="location.href='tr.html'">Extra Safety Features</button>
+        <button onclick="location.href='budget.html'">Budget Planner</button>
+        <button onclick="location.href='fl.html'">GeoSafeID</button>
+      <button class="close-btn" onclick="closePopup()">Close</button>
+    </div>
+  </div>
+
+  <div id="locationBtnContainer">
+    <button class="btn" onclick="openLocationDetector()">📍 Know Your Location</button>
+  </div>
+
+ <div class="bottom-nav">
+  <button onclick="location.href='home.html'">🏠</button>
+  <button onclick="location.href='guide.html'">🧭</button>
+  <button onclick="location.href='sos.html'">🚨</button>
+  <button onclick="location.href='profile.html'">👤</button>
+</div>
+
+  <!-- Dynamic Safety Score Box -->
+  <div id="safetyScoreDisplay">Safety Score: 100%</div>
+
+  <script>
+    // Search
+    function openMap() {
+      let place = document.getElementById("place").value.trim();
+      if(place){ window.open("https://www.google.com/maps?q=" + encodeURIComponent(place), "_blank"); }
+      else{ alert("Please enter a place!"); }
+    }
+
+    // Popup Guide
+    function openPopup(){ document.getElementById('guidePopup').style.display='flex'; }
+    function closePopup(){ document.getElementById('guidePopup').style.display='none'; }
+
+    // Food Spots
+    function openFoodSpots(){
+      alert('This feature works online only!');
+      window.open('famousfood.html','_blank');
+    }
+
+    // Temple Page
+    function openTempPage(){ window.open('temp.html','_blank'); }
+    function openMapsPage(){ window.open('map.html','_blank'); }
+
+    // --- Know Your Location ---
+    function openLocationDetector() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            alert(`📍 Your Location:\nLatitude: ${lat}\nLongitude: ${lng}`);
+            window.open(`https://www.google.com/maps?q=${lat},${lng}`, "_blank");
+          },
+          (err) => {
+            alert("Failed to get location ❌ : " + err.message);
+          }
+        );
+      } else {
+        alert("Geolocation not supported in this browser ❌");
+      }
+    }
+
+    // --- DYNAMIC SAFETY SCORE LOGIC ---
+    let safetyScore = 100;
+    const geofences = [
+      { name: 'Gateway of India', type: 'safe', lat: 18.9220, lng: 72.8347, radius: 500 },
+      { name: 'Red Light District', type: 'danger', lat: 18.9568, lng: 72.8119, radius: 300 },
+      { name: 'Marine Drive', type: 'safe', lat: 18.9437, lng: 72.8234, radius: 1000 },
+    ];
+    let userLocation = { lat: 18.9500, lng: 72.8200 };
+
+    function calculateDistance(p1, p2){
+      const R = 6371e3;
+      const φ1 = p1.lat * Math.PI/180;
+      const φ2 = p2.lat * Math.PI/180;
+      const Δφ = (p2.lat-p1.lat) * Math.PI/180;
+      const Δλ = (p2.lng-p1.lng) * Math.PI/180;
+      const a = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    function updateSafetyScore(location){
+      geofences.forEach(fence=>{
+        const distance = calculateDistance(location, fence);
+        if(distance <= fence.radius){
+          if(fence.type==='danger'){ safetyScore = Math.max(0, safetyScore-10); }
+          else{ safetyScore = Math.min(100, safetyScore+5); }
+        }
+      });
+      const scoreBox = document.getElementById('safetyScoreDisplay');
+      scoreBox.innerText = `Safety Score: ${safetyScore}%`;
+      scoreBox.style.display='block';
+      if(safetyScore >= 75){ scoreBox.style.background = 'rgba(0,128,0,0.7)'; }
+      else if(safetyScore >= 40){ scoreBox.style.background = 'rgba(255,165,0,0.8)'; }
+      else{ scoreBox.style.background = 'rgba(255,0,0,0.8)'; }
+    }
+
+    function openSafetyTips(){
+      alert('Safety Tips Activated! Score updates dynamically.');
+      setInterval(()=>{
+        userLocation.lat += (Math.random()-0.5)*0.001;
+        userLocation.lng += (Math.random()-0.5)*0.001;
+        updateSafetyScore(userLocation);
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Location Detector (India)</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.container {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+}
+.btn {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 25px;
+    cursor: pointer;
+    margin: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(238, 90, 36, 0.3);
+}
+.status {
+    margin: 20px 0;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+.loading {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+.location-info {
+    text-align: left;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+.popup-demo {
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🌍 Exact Location Detector (India)</h1>
+<p>Click the button below to detect your location in India!</p>
+<button class="btn" id="detectBtn" onclick="detectLocation()">📍 Detect My Location</button>
+<button class="btn popup-demo" id="demoBtn" onclick="showPopupDemo()">💬 Demo Popup Boxes</button>
+<div id="status"></div>
+<div id="locationInfo"></div>
+</div>
+
+<script>
+function showStatus(message, type) {
+    const statusDiv = document.getElementById('status');
+    statusDiv.innerHTML = message;
+    statusDiv.className = `status ${type}`;
+}
+
+function showLocationInfo(position) {
+    const info = `
+        <strong>📍 Location Details:</strong><br>
+        Latitude: ${position.latitude.toFixed(6)}<br>
+        Longitude: ${position.longitude.toFixed(6)}<br>
+        Accuracy: ±${position.accuracy} meters<br>
+        Timestamp: ${new Date().toLocaleString()}
+    `;
+    document.getElementById('locationInfo').innerHTML = `<div class="location-info">${info}</div>`;
+}
+
+function detectLocation() {
+    const btn = document.getElementById('detectBtn');
+    btn.disabled = true;
+    btn.innerHTML = '🔄 Detecting...';
+    showStatus('🔍 Detecting your location in India...', 'loading');
+
+    // Simulated location anywhere in India
+    const indiaPosition = {
+        latitude: 20 + Math.random() * 15,  // Between 20°N to 35°N
+        longitude: 70 + Math.random() * 25, // Between 70°E to 95°E
+        accuracy: Math.floor(Math.random() * 50) + 5
+    };
+
+    setTimeout(() => {
+        // Success popup
+        alert(`🎉 Location detected!\n\nLatitude: ${indiaPosition.latitude.toFixed(6)}\nLongitude: ${indiaPosition.longitude.toFixed(6)}\nAccuracy: ±${indiaPosition.accuracy} meters`);
+        
+        showStatus('✅ Location detected successfully!', 'success');
+        showLocationInfo(indiaPosition);
+
+        // Detailed popup
+        showDetailedLocationPopup(indiaPosition);
+
+        btn.disabled = false;
+        btn.innerHTML = '📍 Detect My Location';
+    }, 1000);
+}
+
+function showDetailedLocationPopup(position) {
+    const lat = position.latitude.toFixed(6);
+    const lng = position.longitude.toFixed(6);
+    const accuracy = position.accuracy;
+    
+    let detailsMessage = `📍 LOCATION DETAILS (India) 📍\n\n`;
+    detailsMessage += `🌐 Coordinates:\nLatitude: ${lat}\nLongitude: ${lng}\n\n`;
+    detailsMessage += `🎯 Accuracy: ±${accuracy} meters\n\n`;
+    detailsMessage += `⏰ Time: ${new Date().toLocaleString()}\n\n`;
+    detailsMessage += `🗺️ Google Maps: https://maps.google.com/?q=${lat},${lng}`;
+    
+    alert(detailsMessage);
+    
+    setTimeout(() => {
+        if (confirm(`🌍 Open location in Google Maps?\nCoordinates: ${lat}, ${lng}`)) {
+            window.open(`https://maps.google.com/?q=${lat},${lng}`, '_blank');
+        }
+    }, 500);
+}
+
+function showPopupDemo() {
+    alert('📢 This is popup box #1!\nSimulated location detection in India.');
+    setTimeout(() => alert('📢 This is popup box #2!\nCoordinates and map link will be provided.'), 800);
+    setTimeout(() => alert('📢 This is popup box #3!\nAccuracy depends on random simulation.'), 1600);
+    setTimeout(() => {
+        if (confirm('📢 Demo complete! 🎉\nClick OK to detect your location in India.')) {
+            detectLocation();
+        }
+    }, 2400);
+}
+
+window.onload = function() {
+    setTimeout(() => {
+        alert('🌍 Welcome! This demo detects a simulated location anywhere in India.\nClick "Detect My Location" to try!');
+    }, 500);
+};
+</script>
+</body>
+</html>

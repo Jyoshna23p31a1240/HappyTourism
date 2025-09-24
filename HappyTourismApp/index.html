@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel - Sign In</title>
+    <style>
+        * {
+            margin: 0;
+            
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            /* Gradient + Background Image */
+            background: linear-gradient(135deg, rgba(74,144,164,0.6), rgba(44,110,128,0.6)),
+                        url("preview.webp");
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated background elements */
+        
+        .bg-element {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .mountain1 {
+            top: 10%;
+            left: 10%;
+            width: 300px;
+            height: 200px;
+            background: linear-gradient(45deg, #2c5282, #4299e1);
+            clip-path: polygon(0% 100%, 30% 20%, 70% 30%, 100% 100%);
+            animation-delay: 0s;
+        }
+
+        .mountain2 {
+            top: 15%;
+            right: 15%;
+            width: 250px;
+            height: 150px;
+            background: linear-gradient(45deg, #1a365d, #2c5282);
+            clip-path: polygon(0% 100%, 40% 10%, 80% 40%, 100% 100%);
+            animation-delay: 2s;
+        }
+
+        .tree {
+            bottom: 20%;
+            left: 5%;
+            width: 0;
+            height: 0;
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            border-bottom: 60px solid #2d5016;
+            animation-delay: 4s;
+        }
+
+        .tree::after {
+            content: '';
+            position: absolute;
+            left: -10px;
+            bottom: -70px;
+            width: 20px;
+            height: 30px;
+            background: #8b4513;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-10px) rotate(1deg); }
+            66% { transform: translateY(5px) rotate(-1deg); }
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 500px;
+            width: 100%;
+            padding: 20px;
+            z-index: 10;
+        }
+
+        .quote {
+            color: white;
+            font-size: 2.2rem;
+            font-style: italic;
+            font-weight: 300;
+            text-align: center;
+            margin-bottom: 3rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            line-height: 1.3;
+            max-width: 600px;
+        }
+
+        .login-form {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #059669, #10b981);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+
+        .logo svg {
+            width: 30px;
+            height: 30px;
+            fill: white;
+        }
+
+        h2 {
+            text-align: center;
+            color: #374151;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            border: none;
+            border-radius: 12px;
+            background: #f8fafc;
+            font-size: 1rem;
+            color: #374151;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-input:focus {
+            background: white;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .password-group {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            color: #059669;
+        }
+
+        .sign-in-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .sign-in-btn:hover {
+            background: linear-gradient(135deg, #047857, #059669);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.3);
+        }
+
+        .sign-in-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-link {
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.95rem;
+        }
+
+        .login-link a {
+            color: #059669;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .login-link a:hover {
+            color: #047857;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 640px) {
+            .quote {
+                font-size: 1.6rem;
+                margin-bottom: 2rem;
+            }
+            
+            .login-form {
+                padding: 2rem;
+                margin: 0 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated background elements -->
+    <div class="bg-element mountain1"></div>
+    <div class="bg-element mountain2"></div>
+    <div class="bg-element tree"></div>
+
+    <div class="container">
+        <div class="quote">
+            Travel opens your heart,<br>
+            broadens your mind, and<br>
+            fills your life with stories.
+        </div>
+
+        <div class="login-form">
+            <div class="logo-container">
+                <div class="logo">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
+                        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 8C14.21 8 16 9.79 16 12C16 14.21 14.21 16 12 16C9.79 16 8 14.21 8 12C8 9.79 9.79 8 12 8Z"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <h2>Sign in</h2>
+            
+            <form onsubmit="event.preventDefault(); window.location.href='explore.html';">
+
+                <div class="form-group">
+                    <input type="email" class="form-input" placeholder="Email" required>
+                </div>
+                
+                <div class="form-group password-group">
+                    <input type="password" class="form-input" placeholder="Password" id="password" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword()">👁</button>
+                </div>
+                
+                <button type="submit" class="sign-in-btn">Sign in</button>
+                
+                <div class="login-link">
+                    Already have an account? <a href="#" onclick="switchToLogin()">Log in</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleBtn = document.querySelector('.password-toggle');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleBtn.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                toggleBtn.textContent = '👁';
+            }
+        }
+
+        function switchToLogin() {
+            alert('Switching to login mode...');
+            // Here you would typically navigate to a login page or switch form modes
+        }
+
+        // Add some interactive hover effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('.login-form');
+            
+            form.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 25px 50px rgba(0,0,0,0.15)';
+            });
+            
+            form.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 20px 40px rgba(0,0,0,0.1)';
+            });
+        });
+    </script>
+</body>
+</html>
